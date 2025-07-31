@@ -35,36 +35,6 @@ flowchart TD
     style E fill:#fce4ec
 ```
 
-## Development Phases Overview
-
-```mermaid
-gantt
-    title CV Builder Development Timeline
-    dateFormat  YYYY-MM-DD
-    section Phase 1
-    Core Functionality    :p1, 21d
-    Markdown Editor      :p1a, after p1, 14d
-    File Storage         :p1b, after p1a, 7d
-    
-    section Phase 2
-    Main Pages          :p2, after p1, 28d
-    Homepage            :p2a, after p2, 7d
-    Resume Builder      :p2b, after p2a, 14d
-    Blog & Services     :p2c, after p2b, 7d
-    
-    section Phase 3
-    E-commerce          :p3, after p2, 35d
-    Service Cart        :p3a, after p3, 14d
-    Purchase System     :p3b, after p3a, 14d
-    Payment Gateways    :p3c, after p3b, 7d
-    
-    section Phase 4
-    Analytics & Optimization :p4, after p3, 21d
-    Traffic Statistics   :p4a, after p4, 7d
-    Accessibility       :p4b, after p4a, 7d
-    Performance & SEO   :p4c, after p4b, 7d
-```
-
 ## Phase 1: Core Functionality
 - [ ] **Online Markdown Editor**
   - Editor with live preview
