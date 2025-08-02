@@ -1,7 +1,8 @@
 <template>
   <div class="flex h-screen">
+    <!-- Навигация - скрыта на малых экранах -->
     <div 
-      v-show="showNavigation"
+      v-show="showNavigation && !isMobile"
       class="flex flex-col"
       :style="{ width: navigationWidth + 'px' }"
     >
@@ -11,15 +12,20 @@
       </div>
     </div>
 
+    <!-- Разделитель навигации - скрыт на малых экранах -->
     <div 
-      v-if="showNavigation"
+      v-if="showNavigation && !isMobile"
       class="w-1 bg-gray-200 cursor-col-resize hover:bg-gray-300 transition-colors"
       @mousedown="startResizeNavigation"
     />
 
+    <!-- Основной контент -->
     <div class="flex-1 flex flex-col">
-      <div class="p-4 border-b">
+      <!-- Верхняя панель с кнопками -->
+      <div class="p-4 border-b flex items-center justify-between">
+        <!-- Кнопка навигации для десктопа -->
         <UButton 
+          v-if="!isMobile"
           :icon="showNavigation ? 'i-lucide-chevron-left' : 'i-lucide-chevron-right'"
           color="neutral" 
           variant="subtle" 
@@ -27,13 +33,64 @@
           :title="showNavigation ? t('navigation.hide') : t('navigation.show')"
           @click="toggleNavigation"
         />
+        
+        <!-- Переключатель панелей для мобильных -->
+        <div v-if="isMobile" class="flex items-center gap-1">
+          <UButton
+            :color="currentMobilePanel === 'navigation' ? 'primary' : 'neutral'"
+            variant="soft"
+            size="sm"
+            icon="i-lucide-menu"
+            :title="t('navigation.title')"
+            @click="setMobilePanel('navigation')"
+          />
+          <UButton
+            :color="currentMobilePanel === 'left' ? 'primary' : 'neutral'"
+            variant="soft"
+            size="sm"
+            icon="i-lucide-file-edit"
+            :title="t('editor.panels.left')"
+            @click="setMobilePanel('left')"
+          />
+          <UButton
+            v-if="showDualLocale"
+            :color="currentMobilePanel === 'right' ? 'primary' : 'neutral'"
+            variant="soft"
+            size="sm"
+            icon="i-lucide-eye"
+            :title="t('editor.panels.right')"
+            @click="setMobilePanel('right')"
+          />
+        </div>
+
+        <!-- Заголовок текущей панели для мобильных -->
+        <div v-if="isMobile" class="text-sm font-medium">
+          {{ getMobilePanelTitle() }}
+        </div>
+
+        <!-- Пустое место для выравнивания -->
+        <div v-if="!isMobile"></div>
       </div>
 
+      <!-- Контент панелей -->
       <div class="flex-1 flex">
+        <!-- Навигация для мобильных -->
         <div 
+          v-if="isMobile && currentMobilePanel === 'navigation'"
+          class="w-full"
+        >
+          <div class="p-4 space-y-4 flex-1 overflow-y-auto">
+            <EditorController />
+            <ContentTreeView />
+          </div>
+        </div>
+
+        <!-- Левая панель -->
+        <div 
+          v-if="(!isMobile) || (isMobile && currentMobilePanel === 'left')"
           class="flex flex-col"
           :class="{ 'border-primary border-2': activePanel === 'left' }"
-          :style="{ width: showDualLocale ? (splitRatio * 100) + '%' : '100%' }"
+          :style="{ width: showDualLocale && !isMobile ? (splitRatio * 100) + '%' : '100%' }"
           @click="setActivePanel('left')"
         >
           <PanelToolbar 
@@ -49,17 +106,19 @@
           </div>
         </div>
 
+        <!-- Разделитель сплита - только для десктопа -->
         <div 
-          v-if="showDualLocale"
+          v-if="showDualLocale && !isMobile"
           class="w-1 bg-gray-200 cursor-col-resize hover:bg-gray-300 transition-colors"
           @mousedown="startResizeSplit"
         />
 
+        <!-- Правая панель -->
         <div 
-          v-if="showDualLocale"
+          v-if="(showDualLocale && !isMobile) || (isMobile && currentMobilePanel === 'right')"
           class="flex flex-col"
           :class="{ 'border-primary border-2': activePanel === 'right' }"
-          :style="{ width: (1 - splitRatio) * 100 + '%' }"
+          :style="{ width: showDualLocale && !isMobile ? (1 - splitRatio) * 100 + '%' : '100%' }"
           @click="setActivePanel('right')"
         >
           <PanelToolbar 
@@ -94,6 +153,18 @@ const leftPanel = computed(() => editorController.leftPanel)
 const rightPanel = computed(() => editorController.rightPanel)
 const activePanel = computed(() => editorController.activePanel)
 
+// Адаптивность
+const isMobile = ref(false)
+const currentMobilePanel = ref<'navigation' | 'left' | 'right'>('left')
+
+// Проверка размера экрана
+const checkScreenSize = () => {
+  isMobile.value = window.innerWidth < 768 // md breakpoint
+  if (isMobile.value && currentMobilePanel.value === 'right' && !showDualLocale.value) {
+    currentMobilePanel.value = 'left'
+  }
+}
+
 // Размеры панелей
 const navigationWidth = ref(320)
 const splitRatio = ref(0.5)
@@ -107,6 +178,29 @@ const setPanelMode = (panelId: 'left' | 'right', mode: 'edit' | 'preview') => ed
 const setPanelLocale = (panelId: 'left' | 'right', locale: string) => editorController.setPanelLocale(panelId, locale)
 const getPanelTitle = (panelId: 'left' | 'right') => editorController.getPanelTitle(panelId)
 const setActivePanel = (panelId: 'left' | 'right') => editorController.setActivePanel(panelId)
+
+// Мобильные методы
+const setMobilePanel = (panel: 'navigation' | 'left' | 'right') => {
+  currentMobilePanel.value = panel
+  if (panel === 'left') {
+    setActivePanel('left')
+  } else if (panel === 'right') {
+    setActivePanel('right')
+  }
+}
+
+const getMobilePanelTitle = () => {
+  switch (currentMobilePanel.value) {
+    case 'navigation':
+      return t('navigation.title')
+    case 'left':
+      return t('editor.panels.left')
+    case 'right':
+      return t('editor.panels.right')
+    default:
+      return ''
+  }
+}
 
 // Обработчики resize
 const startResizeNavigation = (e: MouseEvent) => {
@@ -153,8 +247,14 @@ const stopResizeSplit = () => {
   document.removeEventListener('mouseup', stopResizeSplit)
 }
 
-// Очистка при размонтировании
+// Инициализация и очистка
+onMounted(() => {
+  checkScreenSize()
+  window.addEventListener('resize', checkScreenSize)
+})
+
 onUnmounted(() => {
+  window.removeEventListener('resize', checkScreenSize)
   document.removeEventListener('mousemove', handleResizeNavigation)
   document.removeEventListener('mouseup', stopResizeNavigation)
   document.removeEventListener('mousemove', handleResizeSplit)

@@ -19,7 +19,8 @@ export default {
   },
   navigation: {
     show: 'Show navigation',
-    hide: 'Hide navigation'
+    hide: 'Hide navigation',
+    title: 'Navigation'
   },
   editor: {
     title: 'Editor Controller',
