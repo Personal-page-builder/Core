@@ -2,6 +2,16 @@
   <div class="p-3 border-b flex items-center justify-between">
     <h3 class="text-sm font-medium">{{ translatedTitle }}</h3>
     <div class="flex items-center gap-1">
+      <!-- Кнопка отмены изменений -->
+      <UButton
+        v-if="isModified && isClient"
+        color="error"
+        variant="soft"
+        size="xs"
+        icon="i-lucide-rotate-ccw"
+        @click.stop="$emit('revertChanges')"
+      />
+      
       <!-- Выбор языка -->
       <USelect
         v-model="selectedLocale"
@@ -20,6 +30,8 @@
       />
       
       <!-- Режим предпросмотра -->
+      <!-- TODO: Make preview interactive on client side -->
+      <!--
       <UButton
         :color="mode === 'preview' ? 'primary' : 'neutral'"
         variant="soft"
@@ -27,6 +39,7 @@
         icon="i-lucide-eye"
         @click.stop="$emit('modeChange', 'preview')"
       />
+      -->
     </div>
   </div>
 </template>
@@ -43,7 +56,8 @@ interface Props {
   title: string
   mode: 'edit' | 'preview'
   locale: string
-  currentFile?: string | null | object
+  currentFile?: string | null
+  isModified?: boolean
 }
 
 const props = defineProps<Props>()
@@ -51,9 +65,13 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   modeChange: [mode: 'edit' | 'preview']
   localeChange: [locale: string]
+  revertChanges: []
 }>()
 
 const { locales, t } = useI18n()
+
+// Проверка что мы на клиенте
+const isClient = computed(() => typeof window !== 'undefined')
 
 const selectedLocale = computed({
   get: () => props.locale,
@@ -73,6 +91,11 @@ const availableLocales = computed(() => {
 
 // Перевод заголовка панели на лету с именем файла
 const translatedTitle = computed(() => {
+  // Проверяем что мы на клиенте для избежания проблем с гидратацией
+  if (!isClient.value) {
+    return props.title
+  }
+  
   let baseTitle = ''
   
   if (props.title === 'edit') {
@@ -85,7 +108,8 @@ const translatedTitle = computed(() => {
   
   // Добавляем имя файла если оно есть
   if (props.currentFile && typeof props.currentFile === 'string') {
-    return `${baseTitle}`
+    const fileName = props.currentFile.split('/').pop() || props.currentFile
+    return `${baseTitle} - ${fileName}`
   }
   
   return baseTitle

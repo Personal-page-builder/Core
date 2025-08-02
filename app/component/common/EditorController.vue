@@ -1,60 +1,60 @@
 <template>
-  <div class="editor-controller">
-    <UCard class="mb-4">
-      <template #header>
-        <div class="flex items-center justify-between">
-          <h3 class="text-lg font-semibold">{{ t('editor.title') }}</h3>
+  <div class="space-y-4">
+    <h3 class="text-lg font-semibold">{{ t('editor.title') }}</h3>
+    
+    <div class="space-y-3">
+      <h4 class="font-medium text-sm">{{ t('editor.settings') }}</h4>
+      
+      <div class="space-y-2">
+        <UButton
+          :icon="showNavigation ? 'i-lucide-chevron-left' : 'i-lucide-chevron-right'"
+          color="neutral"
+          variant="soft"
+          size="sm"
+          @click="toggleNavigation"
+        >
+          {{ showNavigation ? t('navigation.hide') : t('navigation.show') }}
+        </UButton>
+        
+        <UButton
+          :icon="fixedNavigation ? 'i-lucide-pin' : 'i-lucide-pin-off'"
+          color="neutral"
+          variant="soft"
+          size="sm"
+          @click="toggleFixedNavigation"
+        >
+          {{ fixedNavigation ? t('navigation.unpin') : t('navigation.pin') }}
+        </UButton>
+        
+        <UButton
+          :icon="showDualLocale ? 'i-lucide-languages' : 'i-lucide-languages'"
+          color="neutral"
+          variant="soft"
+          size="sm"
+          @click="toggleDualLocale"
+        >
+          {{ showDualLocale ? t('editor.hideDual') : t('editor.showDual') }}
+        </UButton>
+      </div>
+    </div>
+    
+    <div class="space-y-3">
+      <h4 class="font-medium text-sm">{{ t('editor.panels.title') }}</h4>
+      <div class="space-y-2 text-sm">
+        <div class="flex justify-between">
+          <span>{{ t('editor.panels.left') }}</span>
+          <span>{{ leftPanel.mode }} - {{ leftPanel.locale }}</span>
         </div>
-      </template>
-
-      <div class="space-y-4">
-        <!-- Переключатели -->
-        <div class="space-y-2">
-          <h4 class="font-medium text-sm">{{ t('editor.settings') }}</h4>
-          <div class="flex items-center gap-2">
-            <!-- Переключатель темы -->
-            <UTooltip :text="isDark ? t('editor.theme.light') : t('editor.theme.dark')">
-              <ThemeSwitcher />
-            </UTooltip>
-
-            <!-- Переключатель языка -->
-            <UTooltip :text="t('language.selectLanguage')">
-              <LanguageSwitcher />
-            </UTooltip>
-
-            <!-- Сплит экрана -->
-            <UTooltip :text="showDualLocale ? t('editor.split.disable') : t('editor.split.enable')">
-              <UButton
-                :color="showDualLocale ? 'primary' : 'neutral'"
-                variant="soft"
-                size="sm"
-                icon="i-lucide-split-square-horizontal"
-                @click="toggleDualLocale"
-              />
-            </UTooltip>
-          </div>
+        <div v-if="showDualLocale" class="flex justify-between">
+          <span>{{ t('editor.panels.right') }}</span>
+          <span>{{ rightPanel.mode }} - {{ rightPanel.locale }}</span>
         </div>
-
-        <!-- Информация о панелях -->
-        <div class="space-y-2">
-          <h4 class="font-medium text-sm">{{ t('editor.panels.title') }}</h4>
-          <div class="space-y-2 text-sm">
-            <div class="flex items-center justify-between">
-              <span>{{ t('editor.panels.leftPanel') }}:</span>
-              <span class="text-gray-600">{{ leftPanel.mode }} - {{ leftPanel.locale }}</span>
-            </div>
-            <div v-if="showDualLocale" class="flex items-center justify-between">
-              <span>{{ t('editor.panels.rightPanel') }}:</span>
-              <span class="text-gray-600">{{ rightPanel.mode }} - {{ rightPanel.locale }}</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span>{{ t('editor.panels.activePanel') }}:</span>
-              <span class="text-primary font-medium">{{ activePanel === 'left' ? t('editor.panels.left') : t('editor.panels.right') }}</span>
-            </div>
-          </div>
+        <div class="flex justify-between">
+          <span>{{ t('editor.panels.active') }}</span>
+          <span class="font-medium">{{ activePanel === 'left' ? t('editor.panels.left') : t('editor.panels.right') }}</span>
         </div>
       </div>
-    </UCard>
+    </div>
   </div>
 </template>
 

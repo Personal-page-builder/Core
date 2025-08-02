@@ -1,26 +1,18 @@
 <template>
-  <div class="tree-view">
-    <div v-if="loading" class="flex items-center justify-center p-4">
-      <UIcon name="i-lucide-loader-2" class="animate-spin" />
-      <span class="ml-2">{{ t('common.loading') }}</span>
-    </div>
-    
-    <div v-else-if="error" class="p-4 text-red-500">
-      {{ error }}
-    </div>
-    
-    <div v-else-if="treeItems && treeItems.length > 0">
-      <UTree 
-        :items="treeItems" 
-        :loading="loading"
-        @update:model-value="handleSelection"
-        :selectable="(item: any) => !item.children"
-      />
-    </div>
-    
-    <div v-else class="p-4 text-gray-500">
-      {{ t('common.noContent') }}
-    </div>
+  <div v-if="loading" class="p-4">
+    <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin" />
+    <span class="ml-2">Загрузка...</span>
+  </div>
+  
+  <div v-else-if="error" class="p-4">
+    Ошибка загрузки структуры контента
+  </div>
+  
+  <div v-else class="p-4">
+    <UTree
+      :items="treeItems"
+      @select="handleFileSelect"
+    />
   </div>
 </template>
 
@@ -29,20 +21,23 @@ import { useEditorController } from '~/store/EditorController'
 import type { TreeItem } from '@nuxt/ui'
 
 const editorController = useEditorController()
-const { t } = useI18n()
+const { t: _t } = useI18n()
+
+const isClient = computed(() => typeof window !== 'undefined')
 
 const loading = computed(() => editorController.loading)
 const error = computed(() => editorController.error)
 
-// Получаем информацию о файлах в панелях
 const leftPanelFile = computed(() => editorController.leftPanel.currentFile)
 const rightPanelFile = computed(() => editorController.rightPanel.currentFile)
 
 const treeItems = computed(() => {
+  if (!isClient.value) {
+    return []
+  }
   return convertToTreeItemsWithIndicators(editorController.treeItems)
 })
 
-// Функция для сокращения длинных названий
 const truncateFileName = (name: string, maxLength: number = 20): string => {
   if (name.length <= maxLength) return name
   
@@ -50,7 +45,7 @@ const truncateFileName = (name: string, maxLength: number = 20): string => {
   const nameWithoutExt = name.includes('.') ? name.substring(0, name.lastIndexOf('.')) : name
   
   if (extension) {
-    const availableLength = maxLength - extension.length - 3 // 3 для "..."
+    const availableLength = maxLength - extension.length - 3
     const truncatedName = nameWithoutExt.substring(0, availableLength) + '...'
     return truncatedName + '.' + extension
   } else {
@@ -58,22 +53,20 @@ const truncateFileName = (name: string, maxLength: number = 20): string => {
   }
 }
 
-// Добавляем индикаторы к элементам дерева
 const convertToTreeItemsWithIndicators = (items: TreeItem[]): TreeItem[] => {
   return items.map(item => {
     const customItem = { ...item }
     
-    // Показываем полный путь в label
     if (item.value) {
       const fullPath = item.value as string
       const pathParts = fullPath.split('/')
       const fileName = pathParts[pathParts.length - 1] || fullPath
       const truncatedName = truncateFileName(fileName)
       
-      // Добавляем индикаторы только для файлов
       if (!item.children) {
         const isInLeft = leftPanelFile.value === fullPath
         const isInRight = rightPanelFile.value === fullPath
+        const isModified = editorController.isFileModified(fullPath, 'en')
         
         let indicators = ''
         if (isInLeft && isInRight) {
@@ -84,17 +77,32 @@ const convertToTreeItemsWithIndicators = (items: TreeItem[]): TreeItem[] => {
           indicators = ' [R]'
         }
         
+        if (isModified) {
+          indicators += ' [M]'
+        }
+        
         customItem.label = `${truncatedName}${indicators}`
-        // Добавляем полный путь в title для tooltip
         customItem.title = fullPath
+        
+        if (isModified && isClient.value) {
+          customItem.suffix = {
+            icon: 'i-lucide-rotate-ccw',
+            color: 'error',
+            variant: 'soft',
+            size: 'xs',
+            title: 'Отменить изменения',
+            onClick: () => {
+              console.log('🔄 Откат изменений для файла:', fullPath)
+              editorController.revertFileChanges(fullPath, 'en')
+            }
+          }
+        }
       } else {
-        // Для папок показываем только название
         customItem.label = truncatedName
         customItem.title = fullPath
       }
     }
     
-    // Рекурсивно обрабатываем дочерние элементы
     if (item.children && item.children.length > 0) {
       customItem.children = convertToTreeItemsWithIndicators(item.children)
     }
@@ -103,7 +111,18 @@ const convertToTreeItemsWithIndicators = (items: TreeItem[]): TreeItem[] => {
   })
 }
 
-const handleSelection = (selectedItems: string | undefined) => {
+const handleFileSelect = (selectedItems: string | undefined) => {
+  console.log('🔍 TreeView: handleFileSelect вызван')
+  console.log('📁 Выбранный элемент:', selectedItems)
+  console.log('🎯 Активная панель:', editorController.activePanel)
+  
+  if (selectedItems && typeof selectedItems === 'string') {
+    console.log('📝 Устанавливаем файл в активную панель:', selectedItems)
+    editorController.setActivePanelFile(selectedItems)
+  }
+}
+
+const _handleSelection = (selectedItems: string | undefined) => {
   console.log('🔍 TreeView: handleSelection вызван')
   console.log('📁 Выбранный элемент:', selectedItems)
   console.log('🎯 Активная панель:', editorController.activePanel)

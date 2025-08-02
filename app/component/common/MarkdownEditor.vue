@@ -1,42 +1,54 @@
 <template>
-  <div class="markdown-editor">
-    <!-- Loading state -->
-    <div v-if="loading" class="flex justify-center items-center py-8">
-      <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin text-gray-500" />
-      <span class="ml-2 text-gray-600">{{ $t('common.loading') }}</span>
+  <div v-if="loading" class="flex items-center justify-center p-8">
+    <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin" />
+    <span class="ml-2">{{ $t('common.loading') }}</span>
+  </div>
+  
+  <div v-else-if="error" class="text-center py-8">
+    <UIcon name="i-heroicons-exclamation-triangle" class="w-12 h-12 mx-auto mb-4" />
+    <h3 class="text-lg font-semibold mb-2">
+      {{ $t('common.error') }}
+    </h3>
+    <p class="mb-4">
+      {{ error }}
+    </p>
+    <UButton @click="$emit('revert-changes')">
+      {{ $t('common.revert') }}
+    </UButton>
+  </div>
+  
+  <div v-else-if="content" class="h-full flex flex-col">
+    <div v-if="isModified && isClient" class="p-2 border-b flex items-center justify-between">
+      <span class="text-sm">
+        {{ $t('editor.modified') }}
+      </span>
+      <UButton
+        size="xs"
+        color="error"
+        variant="soft"
+        icon="i-lucide-rotate-ccw"
+        @click="$emit('revert-changes')"
+      >
+        {{ $t('common.revert') }}
+      </UButton>
     </div>
-
-    <!-- Error state -->
-    <div v-else-if="error" class="text-center py-8">
-      <UIcon name="i-heroicons-exclamation-triangle" class="w-12 h-12 text-red-500 mx-auto mb-4" />
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-        {{ $t('error.titles.default') }}
-      </h3>
-      <p class="text-gray-600 dark:text-gray-400 mb-4">
-        {{ error }}
-      </p>
-    </div>
-
-    <!-- Editor state -->
-    <div v-else-if="content || !loading" class="h-full">
-      <textarea
-        v-model="content"
-        class="w-full h-full p-4 font-mono text-sm border-0 outline-none resize-none bg-transparent"
-        placeholder="Начните писать markdown..."
-        @input="handleContentChange"
-      />
-    </div>
-
-    <!-- Empty state -->
-    <div v-else class="text-center py-8">
-      <UIcon name="i-heroicons-document-text" class="w-12 h-12 text-gray-400 mx-auto mb-4" />
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-        {{ $t('common.noContent') }}
-      </h3>
-      <p class="text-gray-600 dark:text-gray-400">
-        {{ $t('common.noContentDescription') }}
-      </p>
-    </div>
+    
+    <textarea
+      :value="content"
+      @input="$emit('content-change', ($event.target as HTMLTextAreaElement).value)"
+      class="flex-1 w-full p-4 font-mono text-sm border-0 outline-none resize-none"
+      :placeholder="$t('editor.placeholder')"
+    />
+  </div>
+  
+  <div v-else class="text-center py-8">
+    <UIcon name="i-heroicons-document-text" class="w-12 h-12 mx-auto mb-4" />
+    <h3 class="text-lg font-semibold mb-2">
+      {{ $t('editor.noFile') }}
+    </h3>
+    <p>
+      {{ $t('editor.selectFile') }}
+    </p>
   </div>
 </template>
 
@@ -45,30 +57,17 @@ interface Props {
   content?: string
   loading?: boolean
   error?: string | null
+  isModified?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  content: '',
-  loading: false,
-  error: null
-})
+const _props = defineProps<Props>()
 
-const emit = defineEmits<{
+const _emit = defineEmits<{
   'content-change': [content: string]
+  'revert-changes': []
 }>()
 
-const content = ref(props.content)
-
-// Синхронизируем с внешним контентом
-watch(() => props.content, (newContent) => {
-  if (newContent !== content.value) {
-    content.value = newContent || ''
-  }
-})
-
-const handleContentChange = () => {
-  emit('content-change', content.value)
-}
+const isClient = computed(() => typeof window !== 'undefined')
 </script>
 
 <style scoped>

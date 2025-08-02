@@ -12,44 +12,46 @@ interface ContentStructure {
   data: FileNode[]
 }
 
+interface FileContent {
+  path: string
+  locale: string
+  originalContent: string
+  modifiedContent: string
+  isModified: boolean
+  lastModified: number
+}
+
 interface Panel {
   id: 'left' | 'right'
   mode: 'edit' | 'preview'
   locale: string
   currentFile: string | null
   title: string
-  content?: string
   loading?: boolean
   error?: string | null
 }
 
 export const useEditorController = defineStore('editorController', () => {
-  // Навигация
   const showNavigation = ref(true)
   const fixedNavigation = ref(false)
   
-  // Локали
   const currentLocale = ref('en')
   const showDualLocale = ref(false)
   const primaryLocale = ref('en')
   
-  // Предпросмотр
+  // TODO: Make preview interactive on client side
   const showPreview = ref(false)
   
-  // Текущий файл
   const currentFile = ref<string | null>(null)
   
-  // Активная панель
   const activePanel = ref<'left' | 'right'>('left')
   
-  // Панели
   const leftPanel = ref<Panel>({
     id: 'left',
     mode: 'edit',
     locale: 'en',
     currentFile: null,
     title: '',
-    content: '',
     loading: false,
     error: null
   })
@@ -60,12 +62,10 @@ export const useEditorController = defineStore('editorController', () => {
     locale: 'en',
     currentFile: null,
     title: '',
-    content: '',
     loading: false,
     error: null
   })
 
-  // Получение доступных панелей
   const availablePanels = computed(() => {
     const panels: ('left' | 'right')[] = ['left']
     if (showDualLocale.value) {
@@ -74,18 +74,18 @@ export const useEditorController = defineStore('editorController', () => {
     return panels
   })
 
-  // Автоматическое переключение активной панели при скрытии
   watch(showDualLocale, (newValue) => {
     if (!newValue && activePanel.value === 'right') {
-      // Если правая панель скрывается и она была активной, переключаемся на левую
       activePanel.value = 'left'
     }
   })
 
-  // Структура контента
   const structure = ref<FileNode[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
+
+  const modifiedFiles = ref<Record<string, FileContent>>({})
+  const hasUnsavedChanges = computed(() => Object.keys(modifiedFiles.value).length > 0)
 
   const fetchStructure = async () => {
     loading.value = true
@@ -123,7 +123,6 @@ export const useEditorController = defineStore('editorController', () => {
     return convertToTreeItems(structure.value)
   })
 
-  // Методы управления навигацией
   const toggleNavigation = () => {
     showNavigation.value = !showNavigation.value
   }
@@ -132,7 +131,6 @@ export const useEditorController = defineStore('editorController', () => {
     fixedNavigation.value = !fixedNavigation.value
   }
 
-  // Методы управления локалями
   const setCurrentLocale = (locale: string) => {
     currentLocale.value = locale
   }
@@ -145,17 +143,15 @@ export const useEditorController = defineStore('editorController', () => {
     primaryLocale.value = locale
   }
 
-  // Методы управления предпросмотром
+  // TODO: Make preview interactive on client side
   const togglePreview = () => {
     showPreview.value = !showPreview.value
   }
 
-  // Методы управления файлами
   const setCurrentFile = (filePath: string | null) => {
     currentFile.value = filePath
   }
 
-  // Загрузка markdown контента
   const loadMarkdownContent = async (panelId: 'left' | 'right', filePath: string, locale: string) => {
     console.log('🚀 EditorController: Загрузка markdown контента')
     console.log('📋 Панель:', panelId)
@@ -163,6 +159,16 @@ export const useEditorController = defineStore('editorController', () => {
     console.log('🌍 Локаль:', locale)
     
     const panel = panelId === 'left' ? leftPanel.value : rightPanel.value
+    const fileKey = getFileKey(filePath, locale)
+    
+    const existingFile = modifiedFiles.value[fileKey]
+    
+    if (existingFile) {
+      console.log('📄 Используем сохраненный контент для файла:', fileKey)
+      panel.loading = false
+      panel.error = null
+      return
+    }
     
     panel.loading = true
     panel.error = null
@@ -181,32 +187,125 @@ export const useEditorController = defineStore('editorController', () => {
       
       if (response.success && response.data) {
         console.log('📄 Контент загружен, длина:', response.data.content.length)
-        panel.content = response.data.content
+        
+        const fileContent: FileContent = {
+          path: filePath,
+          locale,
+          originalContent: response.data.content,
+          modifiedContent: response.data.content,
+          isModified: false,
+          lastModified: Date.now()
+        }
+        modifiedFiles.value[fileKey] = fileContent
+        
         console.log('💾 Контент сохранен в панель:', panelId)
       } else {
         console.log('❌ Ошибка загрузки:', response.error)
         panel.error = response.error || 'Ошибка загрузки контента'
-        panel.content = ''
       }
     } catch (err) {
       console.error('❌ EditorController: Ошибка при загрузке markdown:', err)
       panel.error = 'Ошибка при загрузке файла'
-      panel.content = ''
     } finally {
       panel.loading = false
       console.log('🏁 EditorController: Загрузка завершена для панели:', panelId)
     }
   }
 
-  // Обновление контента панели
   const updatePanelContent = (panelId: 'left' | 'right', content: string) => {
     const panel = panelId === 'left' ? leftPanel.value : rightPanel.value
-    panel.content = content
+    
+    if (panel.currentFile) {
+      const fileKey = `${panel.currentFile}_${panel.locale}`
+      const existingFile = modifiedFiles.value[fileKey]
+      
+      if (existingFile) {
+        existingFile.modifiedContent = content
+        existingFile.isModified = content !== existingFile.originalContent
+        existingFile.lastModified = Date.now()
+        modifiedFiles.value[fileKey] = existingFile
+      } else {
+        const fileContent: FileContent = {
+          path: panel.currentFile,
+          locale: panel.locale,
+          originalContent: content,
+          modifiedContent: content,
+          isModified: false,
+          lastModified: Date.now()
+        }
+        modifiedFiles.value[fileKey] = fileContent
+      }
+      
+      console.log('📝 Файл обновлен:', fileKey, 'Изменен:', existingFile?.isModified || false)
+    }
   }
 
-  // Методы управления панелями
+  const getFileKey = (filePath: string, locale: string): string => {
+    return `${filePath}_${locale}`
+  }
+
+  const isFileModified = (filePath: string, locale: string): boolean => {
+    const fileKey = getFileKey(filePath, locale)
+    const fileContent = modifiedFiles.value[fileKey]
+    return fileContent?.isModified || false
+  }
+
+  const revertFileChanges = (filePath: string, locale: string) => {
+    const fileKey = getFileKey(filePath, locale)
+    const fileContent = modifiedFiles.value[fileKey]
+    
+    if (fileContent) {
+      fileContent.modifiedContent = fileContent.originalContent
+      fileContent.isModified = false
+      fileContent.lastModified = Date.now()
+      modifiedFiles.value[fileKey] = fileContent
+      
+      console.log('🔄 Изменения откачены для файла:', fileKey)
+    }
+  }
+
+  const saveFile = async (fileContent: FileContent) => {
+    try {
+      const response = await $fetch<{ success: boolean }>('/api/content/markdown', {
+        method: 'PUT',
+        body: {
+          path: fileContent.path,
+          locale: fileContent.locale,
+          content: fileContent.modifiedContent
+        }
+      })
+      
+      return response.success
+    } catch (err) {
+      console.error('❌ Ошибка сохранения файла:', err)
+      return false
+    }
+  }
+
+  const saveAllChanges = async () => {
+    console.log('💾 Сохранение всех изменений...')
+    
+    for (const [fileKey, fileContent] of Object.entries(modifiedFiles.value)) {
+      if (fileContent.isModified) {
+        const success = await saveFile(fileContent)
+        
+        if (success) {
+          fileContent.originalContent = fileContent.modifiedContent
+          fileContent.isModified = false
+          fileContent.lastModified = Date.now()
+          modifiedFiles.value[fileKey] = fileContent
+          
+          console.log('✅ Файл сохранен:', fileKey)
+        } else {
+          console.log('❌ Ошибка сохранения файла:', fileKey)
+        }
+      }
+    }
+    
+    console.log('🏁 Сохранение завершено')
+  }
+
   const setActivePanel = (panelId: 'left' | 'right') => {
-    // Проверяем, что панель доступна
     if (availablePanels.value.includes(panelId)) {
       activePanel.value = panelId
     }
@@ -234,14 +333,12 @@ export const useEditorController = defineStore('editorController', () => {
     if (panelId === 'left') {
       console.log('📝 Устанавливаем файл в левую панель:', filePath)
       leftPanel.value.currentFile = filePath
-      // Загружаем контент если файл установлен
       if (filePath) {
         loadMarkdownContent('left', filePath, leftPanel.value.locale)
       }
     } else {
       console.log('📝 Устанавливаем файл в правую панель:', filePath)
       rightPanel.value.currentFile = filePath
-      // Загружаем контент если файл установлен
       if (filePath) {
         loadMarkdownContent('right', filePath, rightPanel.value.locale)
       }
@@ -252,7 +349,6 @@ export const useEditorController = defineStore('editorController', () => {
     console.log('   Правая панель:', rightPanel.value.currentFile)
   }
 
-  // Установка файла в активную панель
   const setActivePanelFile = (filePath: string | null) => {
     console.log('🎯 setActivePanelFile вызван:', { filePath, activePanel: activePanel.value })
     setPanelFile(activePanel.value, filePath)
@@ -261,13 +357,11 @@ export const useEditorController = defineStore('editorController', () => {
   const getPanelTitle = (panelId: 'left' | 'right'): string => {
     const panel = panelId === 'left' ? leftPanel.value : rightPanel.value
     if (panel.currentFile && typeof panel.currentFile === 'string') {
-      // Показываем полный путь файла
       return `${panel.mode} - ${panel.currentFile}`
     }
     return panel.mode
   }
 
-  // Получение уникальных файлов для рендера
   const getUniqueFiles = computed(() => {
     const files = new Set<string | null>()
     if (leftPanel.value.currentFile) files.add(leftPanel.value.currentFile)
@@ -275,14 +369,69 @@ export const useEditorController = defineStore('editorController', () => {
     return Array.from(files)
   })
 
+  const getFileContent = (filePath: string, locale: string): string => {
+    const fileKey = getFileKey(filePath, locale)
+    const fileContent = modifiedFiles.value[fileKey]
+    return fileContent?.modifiedContent || ''
+  }
+
+  const getPanelContent = (panelId: 'left' | 'right'): string => {
+    const panel = panelId === 'left' ? leftPanel.value : rightPanel.value
+    if (!panel.currentFile) return ''
+    return getFileContent(panel.currentFile, panel.locale)
+  }
+
+  const getPanelLoading = (panelId: 'left' | 'right'): boolean => {
+    const panel = panelId === 'left' ? leftPanel.value : rightPanel.value
+    return panel.loading || false
+  }
+
+  const getPanelError = (panelId: 'left' | 'right'): string | null => {
+    const panel = panelId === 'left' ? leftPanel.value : rightPanel.value
+    return panel.error || null
+  }
+
+  const createPageObject = (filePath: string, locale: string) => {
+    const content = getFileContent(filePath, locale)
+    if (!content) return null
+    
+    return {
+      _path: filePath,
+      _dir: filePath.split('/').slice(0, -1).join('/'),
+      _draft: false,
+      _partial: false,
+      _empty: false,
+      title: filePath.split('/').pop() || filePath,
+      description: '',
+      body: {
+        type: 'root',
+        children: [
+          {
+            type: 'element',
+            tag: 'div',
+            props: {},
+            children: [
+              {
+                type: 'text',
+                value: content
+              }
+            ]
+          }
+        ]
+      },
+      _id: filePath,
+      _source: 'content',
+      _file: filePath,
+      _extension: 'md'
+    }
+  }
+
   return {
-    // Навигация
     showNavigation,
     fixedNavigation,
     toggleNavigation,
     toggleFixedNavigation,
     
-    // Локали
     currentLocale,
     showDualLocale,
     primaryLocale,
@@ -290,21 +439,18 @@ export const useEditorController = defineStore('editorController', () => {
     toggleDualLocale,
     setPrimaryLocale,
     
-    // Предпросмотр
+    // TODO: Make preview interactive on client side
     showPreview,
     togglePreview,
     
-    // Текущий файл
     currentFile,
     setCurrentFile,
     
-    // Активная панель
     activePanel,
     availablePanels,
     setActivePanel,
     setActivePanelFile,
     
-    // Панели
     leftPanel,
     rightPanel,
     setPanelMode,
@@ -314,12 +460,24 @@ export const useEditorController = defineStore('editorController', () => {
     getUniqueFiles,
     loadMarkdownContent,
     updatePanelContent,
+    isFileModified,
+    revertFileChanges,
+    saveAllChanges,
+    saveFile,
     
-    // Структура контента
     structure,
     loading,
     error,
     treeItems,
-    fetchStructure
+    fetchStructure,
+    modifiedFiles,
+    hasUnsavedChanges,
+    getFileContent,
+    getPanelContent,
+    getPanelLoading,
+    getPanelError,
+    createPageObject
   }
+}, {
+  persist: false
 }) 

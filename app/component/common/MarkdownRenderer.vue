@@ -1,39 +1,31 @@
 <template>
-  <div class="markdown-renderer">
-    <!-- Loading state -->
-    <div v-if="pending" class="flex justify-center items-center py-8">
-      <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin text-gray-500" />
-      <span class="ml-2 text-gray-600">{{ $t('common.loading') }}</span>
-    </div>
-
-    <!-- Error state -->
-    <div v-else-if="error" class="text-center py-8">
-      <UIcon name="i-heroicons-exclamation-triangle" class="w-12 h-12 text-red-500 mx-auto mb-4" />
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-        {{ $t('error.titles.default') }}
-      </h3>
-      <p class="text-gray-600 dark:text-gray-400 mb-4">
-        {{ $t('error.messages.default') }}
-      </p>
-      <UButton @click="handleRefresh" color="primary">
-        {{ $t('error.tryAgain') }}
-      </UButton>
-    </div>
-    <!-- Content state -->
-    <div v-else-if="page" class="prose prose-gray dark:prose-invert max-w-none">
-      <ContentRenderer :value="page" />
-    </div>
-    <!-- Empty state -->
-    <div v-else class="text-center py-8">
-      <UIcon name="i-heroicons-document-text" class="w-12 h-12 text-gray-400 mx-auto mb-4" />
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-        {{ $t('common.noContent') }}
-      </h3>
-      <p class="text-gray-600 dark:text-gray-400">
-        {{ $t('common.noContentDescription') }}
-      </p>
-    </div>
-    
+  <div v-if="_pending" class="flex items-center justify-center p-8">
+    <UIcon name="i-heroicons-arrow-path" class="w-6 h-6 animate-spin" />
+    <span class="ml-2">{{ $t('common.loading') }}</span>
+  </div>
+  
+  <div v-else-if="error" class="text-center py-8">
+    <UIcon name="i-heroicons-exclamation-triangle" class="w-12 h-12 mx-auto mb-4" />
+    <h3 class="text-lg font-semibold mb-2">
+      {{ $t('common.error') }}
+    </h3>
+    <p class="mb-4">
+      {{ error }}
+    </p>
+  </div>
+  
+  <div v-else-if="page" class="h-full overflow-y-auto p-4">
+    <ContentRenderer :value="page" />
+  </div>
+  
+  <div v-else class="text-center py-8">
+    <UIcon name="i-heroicons-document-text" class="w-12 h-12 mx-auto mb-4" />
+    <h3 class="text-lg font-semibold mb-2">
+      {{ $t('common.noContent') }}
+    </h3>
+    <p>
+      {{ $t('common.noContentDescription') }}
+    </p>
   </div>
 </template>
 
@@ -44,11 +36,15 @@ interface Props {
   path: string
   locale?: string
   fallbackLocale?: string
+  page?: Record<string, unknown> // Готовый контент для ContentRenderer
+  createPageObject?: (filePath: string, locale: string) => Record<string, unknown> | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
   locale: 'ru',
-  fallbackLocale: 'en'
+  fallbackLocale: 'en',
+  page: undefined,
+  createPageObject: undefined
 })
 
 const { locale: currentLocale } = useI18n()
@@ -56,10 +52,26 @@ const { locale: currentLocale } = useI18n()
 // Use the provided locale or fallback to current locale
 const targetLocale = computed(() => props.locale || currentLocale.value)
 
-// Fetch content based on path and locale
-const { data: page, pending, error, refresh } = await useAsyncData(
+// Fetch content based on path and locale, или используем переданный page
+const { data: page, pending: _pending, error, refresh } = await useAsyncData(
   `markdown-${props.path}-${targetLocale.value}`,
   async () => {
+    // Если передан готовый page, используем его
+    if (props.page) {
+      console.log('📄 MarkdownRenderer: Используем переданный page')
+      return props.page
+    }
+    
+    // Если есть createPageObject, используем его
+    if (props.createPageObject) {
+      console.log('📄 MarkdownRenderer: Создаем page объект через createPageObject')
+      const pageObject = props.createPageObject(props.path, props.locale || 'en')
+      if (pageObject) {
+        console.log('✅ MarkdownRenderer: Page объект создан')
+        return pageObject
+      }
+    }
+    
     console.log('🔍 MarkdownRenderer: Начинаем загрузку контента')
     console.log('📁 Путь:', props.path)
     console.log('🌍 Локаль:', targetLocale.value)
@@ -90,12 +102,12 @@ const { data: page, pending, error, refresh } = await useAsyncData(
     }
   },
   {
-    watch: [targetLocale], // Refetch when locale changes
+    watch: [targetLocale, () => props.page, () => props.createPageObject], // Refetch when locale, page or createPageObject changes
   }
 )
 
 // Handle refresh button click
-const handleRefresh = () => {
+const _handleRefresh = () => {
   refresh()
 }
 </script>

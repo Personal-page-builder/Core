@@ -15,7 +15,7 @@
     <!-- Разделитель навигации - скрыт на малых экранах -->
     <div 
       v-if="showNavigation && !isMobile"
-      class="w-1 bg-gray-200 cursor-col-resize hover:bg-gray-300 transition-colors"
+      class="w-1 cursor-col-resize hover:transition-colors"
       @mousedown="startResizeNavigation"
     />
 
@@ -68,8 +68,21 @@
           {{ getMobilePanelTitle() }}
         </div>
 
+        <!-- Кнопка сохранения изменений -->
+        <UButton
+          v-if="hasUnsavedChanges && isClient"
+          color="primary"
+          variant="solid"
+          size="sm"
+          icon="i-lucide-save"
+          :title="t('editor.saveChanges')"
+          @click="saveAllChanges"
+        >
+          {{ t('editor.save') }}
+        </UButton>
+
         <!-- Пустое место для выравнивания -->
-        <div v-if="!isMobile"></div>
+        <div v-if="!isMobile && !hasUnsavedChanges"></div>
       </div>
 
       <!-- Контент панелей -->
@@ -81,7 +94,7 @@
         >
           <div class="p-4 space-y-4 flex-1 overflow-y-auto">
             <EditorController />
-            <ContentTreeView />
+      <ContentTreeView />
           </div>
         </div>
 
@@ -98,33 +111,41 @@
             :mode="leftPanel.mode"
             :locale="leftPanel.locale"
             :current-file="leftPanel.currentFile ? String(leftPanel.currentFile) : null"
+            :is-modified="isFileModified(leftPanel.currentFile || '', leftPanel.locale)"
             @mode-change="(mode) => setPanelMode('left', mode)"
             @locale-change="(locale) => setPanelLocale('left', locale)"
+            @revert-changes="() => revertFileChanges(leftPanel.currentFile || '', leftPanel.locale)"
           />
           
           <div class="flex-1 overflow-y-auto">
             <!-- Режим редактирования -->
             <MarkdownEditor
               v-if="leftPanel.mode === 'edit'"
-              :content="leftPanel.content"
-              :loading="leftPanel.loading"
-              :error="leftPanel.error"
+              :content="getPanelContent('left')"
+              :loading="getPanelLoading('left')"
+              :error="getPanelError('left')"
+              :is-modified="isFileModified(leftPanel.currentFile || '', leftPanel.locale)"
               @content-change="(content) => updatePanelContent('left', content)"
+              @revert-changes="() => revertFileChanges(leftPanel.currentFile || '', leftPanel.locale)"
             />
             
             <!-- Режим предпросмотра -->
+            <!-- TODO: Make preview interactive on client side -->
+            <!--
             <MarkdownRenderer
               v-else-if="leftPanel.mode === 'preview'"
-              :path="getContentPath(leftPanel.currentFile)"
+              :path="leftPanel.currentFile || ''"
               :locale="leftPanel.locale"
+              :create-page-object="createPageObject"
             />
+            -->
           </div>
         </div>
 
         <!-- Разделитель сплита - только для десктопа -->
         <div 
           v-if="showDualLocale && !isMobile"
-          class="w-1 bg-gray-200 cursor-col-resize hover:bg-gray-300 transition-colors"
+          class="w-1 cursor-col-resize hover:transition-colors"
           @mousedown="startResizeSplit"
         />
 
@@ -141,26 +162,34 @@
             :mode="rightPanel.mode"
             :locale="rightPanel.locale"
             :current-file="rightPanel.currentFile ? String(rightPanel.currentFile) : null"
+            :is-modified="isFileModified(rightPanel.currentFile || '', rightPanel.locale)"
             @mode-change="(mode) => setPanelMode('right', mode)"
             @locale-change="(locale) => setPanelLocale('right', locale)"
+            @revert-changes="() => revertFileChanges(rightPanel.currentFile || '', rightPanel.locale)"
           />
           
           <div class="flex-1 overflow-y-auto">
             <!-- Режим редактирования -->
             <MarkdownEditor
               v-if="rightPanel.mode === 'edit'"
-              :content="rightPanel.content"
-              :loading="rightPanel.loading"
-              :error="rightPanel.error"
+              :content="getPanelContent('right')"
+              :loading="getPanelLoading('right')"
+              :error="getPanelError('right')"
+              :is-modified="isFileModified(rightPanel.currentFile || '', rightPanel.locale)"
               @content-change="(content) => updatePanelContent('right', content)"
+              @revert-changes="() => revertFileChanges(rightPanel.currentFile || '', rightPanel.locale)"
             />
             
             <!-- Режим предпросмотра -->
+            <!-- TODO: Make preview interactive on client side -->
+            <!--
             <MarkdownRenderer
               v-else-if="rightPanel.mode === 'preview'"
-              :path="getContentPath(rightPanel.currentFile)"
+              :path="rightPanel.currentFile || ''"
               :locale="rightPanel.locale"
+              :create-page-object="createPageObject"
             />
+            -->
           </div>
         </div>
       </div>
@@ -173,11 +202,15 @@ import ContentTreeView from '~/component/content/TreeView.vue'
 import EditorController from '~/component/common/EditorController.vue'
 import PanelToolbar from '~/component/common/PanelToolbar.vue'
 import MarkdownEditor from '~/component/common/MarkdownEditor.vue'
-import MarkdownRenderer from '~/component/common/MarkdownRenderer.vue'
+// TODO: Make preview interactive on client side
+// import MarkdownRenderer from '~/component/common/MarkdownRenderer.vue'
 import { useEditorController } from '~/store/EditorController'
 
 const editorController = useEditorController()
 const { t } = useI18n()
+
+// Проверка что мы на клиенте
+const isClient = computed(() => typeof window !== 'undefined')
 
 const showNavigation = computed(() => editorController.showNavigation)
 const showDualLocale = computed(() => editorController.showDualLocale)
@@ -211,18 +244,21 @@ const setPanelLocale = (panelId: 'left' | 'right', locale: string) => editorCont
 const getPanelTitle = (panelId: 'left' | 'right') => editorController.getPanelTitle(panelId)
 const setActivePanel = (panelId: 'left' | 'right') => editorController.setActivePanel(panelId)
 const updatePanelContent = (panelId: 'left' | 'right', content: string) => editorController.updatePanelContent(panelId, content)
-
-// Функция для преобразования пути файла в путь для Nuxt Content
-const getContentPath = (filePath: string | null): string => {
-  if (!filePath) return ''
-  
-  // Убираем расширение .md и /index для Nuxt Content
-  let pathWithoutExt = filePath.replace(/\.md$/, '')
-  pathWithoutExt = pathWithoutExt.replace(/\/index$/, '')
-  
-  console.log('🔄 Преобразование пути:', filePath, '→', pathWithoutExt)
-  return pathWithoutExt
+const hasUnsavedChanges = computed(() => {
+  if (!isClient.value) return false
+  return editorController.hasUnsavedChanges
+})
+const saveAllChanges = () => editorController.saveAllChanges()
+const isFileModified = (filePath: string, locale: string) => {
+  if (!isClient.value) return false
+  return editorController.isFileModified(filePath, locale)
 }
+const revertFileChanges = (filePath: string, locale: string) => editorController.revertFileChanges(filePath, locale)
+const getPanelContent = (panelId: 'left' | 'right') => editorController.getPanelContent(panelId)
+const getPanelLoading = (panelId: 'left' | 'right') => editorController.getPanelLoading(panelId)
+const getPanelError = (panelId: 'left' | 'right') => editorController.getPanelError(panelId)
+// TODO: Make preview interactive on client side
+// const createPageObject = (filePath: string, locale: string) => editorController.createPageObject(filePath, locale)
 
 // Мобильные методы
 const setMobilePanel = (panel: 'navigation' | 'left' | 'right') => {
@@ -305,7 +341,7 @@ onUnmounted(() => {
   document.removeEventListener('mousemove', handleResizeSplit)
   document.removeEventListener('mouseup', stopResizeSplit)
 })
-</script>
+</script> 
 
 <style scoped>
 /* Стили для курсора при resize */
