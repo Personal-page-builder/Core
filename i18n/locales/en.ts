@@ -17,6 +17,11 @@ export default {
     selectDescription: 'Choose your preferred language',
     selectLanguage: 'Select Language'
   },
+  common: {
+    loading: 'Loading...',
+    noContent: 'No content found',
+    noContentDescription: 'The requested page does not contain any content.'
+  },
   error: {
     tryAgain: 'Try Again',
     goHome: 'Go Home',

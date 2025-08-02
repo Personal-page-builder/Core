@@ -17,6 +17,11 @@ export default {
     selectDescription: 'Выберите предпочитаемый язык',
     selectLanguage: 'Выберите язык'
   },
+  common: {
+    loading: 'Загрузка...',
+    noContent: 'Контент не найден',
+    noContentDescription: 'Запрашиваемая страница не содержит контента.'
+  },
   error: {
     tryAgain: 'Попробовать снова',
     goHome: 'На главную',

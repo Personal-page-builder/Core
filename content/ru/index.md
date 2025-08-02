@@ -28,3 +28,11 @@ sitemap:
 <UButton color="neutral" variant="outline" size="md">
   Узнать больше
 </UButton> 
+
+
+
+```js [file.js]{2} meta-info=val
+  export default () => {
+    console.log('Code block')
+  }
+  ```
