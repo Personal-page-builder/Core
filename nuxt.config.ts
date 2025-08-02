@@ -52,28 +52,28 @@ export default defineNuxtConfig({
       skills: process.env.AUTHOR_SKILLS?.split(',') || ['frontend', 'backend', 'devops', 'ui/ux'],
       
       // Contact information
-      email: process.env.AUTHOR_EMAIL || 'byluginniktia@gmail.com',
+      email: process.env.AUTHOR_EMAIL || 'byluginnikita@gmail.com',
       phone: process.env.AUTHOR_PHONE || '+7-XXX-XXX-XXXX',
       whatsapp: process.env.AUTHOR_WHATSAPP || '+7-XXX-XXX-XXXX',
       
       // Social media and professional networks
-      telegram: process.env.AUTHOR_TELEGRAM || '@Bulygin_Nik',
-      twitter: process.env.AUTHOR_TWITTER || '@NikBulygin',
-      discord: process.env.AUTHOR_DISCORD || 'NikBulygin#1234',
-      github: process.env.AUTHOR_GITHUB || 'NikBulygin',
-      gitlab: process.env.AUTHOR_GITLAB || 'NikBulygin',
-      matrix: process.env.AUTHOR_MATRIX || '@nikbulygin:matrix.org',
-      linkedin: process.env.AUTHOR_LINKEDIN || 'nikbulygin',
-      stackoverflow: process.env.AUTHOR_STACKOVERFLOW || 'nikbulygin',
-      medium: process.env.AUTHOR_MEDIUM || '@nikbulygin',
-      devto: process.env.AUTHOR_DEVTO || 'nikbulygin',
-      hashnode: process.env.AUTHOR_HASHNODE || '@nikbulygin',
-      reddit: process.env.AUTHOR_REDDIT || 'u/NikBulygin',
-      youtube: process.env.AUTHOR_YOUTUBE || '@NikBulygin',
-      twitch: process.env.AUTHOR_TWITCH || 'nikbulygin',
-      instagram: process.env.AUTHOR_INSTAGRAM || '@nikbulygin',
-      facebook: process.env.AUTHOR_FACEBOOK || 'nikbulygin',
-      vk: process.env.AUTHOR_VK || 'nikbulygin'
+      telegram: process.env.AUTHOR_TELEGRAM,
+      twitter: process.env.AUTHOR_TWITTER,
+      discord: process.env.AUTHOR_DISCORD,
+      github: process.env.AUTHOR_GITHUB,
+      gitlab: process.env.AUTHOR_GITLAB,
+      matrix: process.env.AUTHOR_MATRIX,
+      linkedin: process.env.AUTHOR_LINKEDIN,
+      stackoverflow: process.env.AUTHOR_STACKOVERFLOW,
+      medium: process.env.AUTHOR_MEDIUM,
+      devto: process.env.AUTHOR_DEVTO,
+      hashnode: process.env.AUTHOR_HASHNODE,
+      reddit: process.env.AUTHOR_REDDIT,
+      youtube: process.env.AUTHOR_YOUTUBE,
+      twitch: process.env.AUTHOR_TWITCH,
+      instagram: process.env.AUTHOR_INSTAGRAM,
+      facebook: process.env.AUTHOR_FACEBOOK,
+      vk: process.env.AUTHOR_VK
     },
 
     // Site configuration
