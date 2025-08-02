@@ -10,6 +10,25 @@ export default defineNuxtConfig({
     '@pinia/nuxt'
   ],
   css: ['~/assets/css/main.css'],
+  
+  runtimeConfig: {
+    database: {
+      type: process.env.DATABASE_TYPE || 'sqlite',
+      sqlite: {
+        filename: process.env.SQLITE_FILENAME || '.data/content.db'
+      },
+      postgres: {
+        url: process.env.POSTGRES_URL,
+        host: process.env.POSTGRES_HOST,
+        port: process.env.POSTGRES_PORT || 5432,
+        database: process.env.POSTGRES_DATABASE,
+        username: process.env.POSTGRES_USERNAME,
+        password: process.env.POSTGRES_PASSWORD,
+        ssl: process.env.POSTGRES_SSL === 'true'
+      }
+    }
+  },
+
   i18n: {
     strategy: 'no_prefix',
     defaultLocale: 'ru',
@@ -24,7 +43,33 @@ export default defineNuxtConfig({
       redirectOn: 'root',
     },
   },
-  // ui: {
-  //   colorMode: false
-  // }
+
+  content: {
+    database: process.env.DATABASE_TYPE === 'postgres' && process.env.POSTGRES_URL ? {
+      type: 'postgres' as const,
+      url: process.env.POSTGRES_URL
+    } : {
+      type: 'sqlite' as const,
+      filename: process.env.SQLITE_FILENAME || '.data/content.db'
+    },
+
+    build: {
+      markdown: {
+        toc: {
+          depth: 3,
+          searchDepth: 2
+        },
+        highlight: {
+          theme: {
+            default: 'github-light',
+            dark: 'github-dark'
+          }
+        }
+      }
+    },
+
+    renderer: {
+      anchorLinks: { h2: true, h3: true, h4: true }
+    }
+  }
 })
