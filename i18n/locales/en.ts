@@ -17,6 +17,40 @@ export default {
     selectDescription: 'Choose your preferred language',
     selectLanguage: 'Select Language'
   },
+  navigation: {
+    show: 'Show navigation',
+    hide: 'Hide navigation'
+  },
+  editor: {
+    title: 'Editor Controller',
+    settings: 'Settings',
+    currentFile: 'Current File',
+    noFileSelected: 'No file selected',
+    preview: {
+      show: 'Show preview',
+      hide: 'Hide preview',
+      toggle: 'Toggle preview'
+    },
+    split: {
+      enable: 'Enable split screen',
+      disable: 'Disable split screen',
+      toggle: 'Toggle split screen'
+    },
+    theme: {
+      light: 'Switch to light theme',
+      dark: 'Switch to dark theme'
+    },
+    panels: {
+      title: 'Panels',
+      leftPanel: 'Left panel',
+      rightPanel: 'Right panel',
+      activePanel: 'Active panel',
+      left: 'Left',
+      right: 'Right',
+      edit: 'Edit',
+      preview: 'Preview'
+    }
+  },
   common: {
     loading: 'Loading...',
     noContent: 'No content found',
@@ -40,7 +74,7 @@ export default {
       418: 'The server refuses to brew coffee because it is a teapot.',
       403: 'You do not have permission to access this page.',
       500: 'An internal server error occurred. Please try again later.',
-      default: 'An unexpected error occurred. Please try refreshing the page.'
+      default: 'An unexpected error occurred. Please refresh the page.'
     }
   }
 }

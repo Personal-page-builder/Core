@@ -17,6 +17,40 @@ export default {
     selectDescription: 'Выберите предпочитаемый язык',
     selectLanguage: 'Выберите язык'
   },
+  navigation: {
+    show: 'Показать навигацию',
+    hide: 'Скрыть навигацию'
+  },
+  editor: {
+    title: 'Контроллер редактирования',
+    settings: 'Настройки',
+    currentFile: 'Текущий файл',
+    noFileSelected: 'Файл не выбран',
+    preview: {
+      show: 'Показать предпросмотр',
+      hide: 'Скрыть предпросмотр',
+      toggle: 'Переключить предпросмотр'
+    },
+    split: {
+      enable: 'Включить сплит экрана',
+      disable: 'Отключить сплит экрана',
+      toggle: 'Переключить сплит экрана'
+    },
+    theme: {
+      light: 'Переключить на светлую тему',
+      dark: 'Переключить на темную тему'
+    },
+    panels: {
+      title: 'Панели',
+      leftPanel: 'Левая панель',
+      rightPanel: 'Правая панель',
+      activePanel: 'Активная панель',
+      left: 'Левая',
+      right: 'Правая',
+      edit: 'Редактирование',
+      preview: 'Предпросмотр'
+    }
+  },
   common: {
     loading: 'Загрузка...',
     noContent: 'Контент не найден',
