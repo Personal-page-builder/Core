@@ -18,6 +18,9 @@ interface Panel {
   locale: string
   currentFile: string | null
   title: string
+  content?: string
+  loading?: boolean
+  error?: string | null
 }
 
 export const useEditorController = defineStore('editorController', () => {
@@ -45,7 +48,10 @@ export const useEditorController = defineStore('editorController', () => {
     mode: 'edit',
     locale: 'en',
     currentFile: null,
-    title: 'edit'
+    title: '',
+    content: '',
+    loading: false,
+    error: null
   })
   
   const rightPanel = ref<Panel>({
@@ -53,7 +59,10 @@ export const useEditorController = defineStore('editorController', () => {
     mode: 'preview',
     locale: 'en',
     currentFile: null,
-    title: 'preview'
+    title: '',
+    content: '',
+    loading: false,
+    error: null
   })
 
   // Получение доступных панелей
@@ -146,6 +155,55 @@ export const useEditorController = defineStore('editorController', () => {
     currentFile.value = filePath
   }
 
+  // Загрузка markdown контента
+  const loadMarkdownContent = async (panelId: 'left' | 'right', filePath: string, locale: string) => {
+    console.log('🚀 EditorController: Загрузка markdown контента')
+    console.log('📋 Панель:', panelId)
+    console.log('📁 Файл:', filePath)
+    console.log('🌍 Локаль:', locale)
+    
+    const panel = panelId === 'left' ? leftPanel.value : rightPanel.value
+    
+    panel.loading = true
+    panel.error = null
+    
+    try {
+      console.log('📡 Отправка запроса к API...')
+      const response = await $fetch('/api/content/markdown', {
+        query: {
+          path: filePath,
+          locale
+        }
+      })
+      
+      console.log('✅ EditorController: Ответ получен')
+      console.log('📊 Успех:', response.success)
+      
+      if (response.success && response.data) {
+        console.log('📄 Контент загружен, длина:', response.data.content.length)
+        panel.content = response.data.content
+        console.log('💾 Контент сохранен в панель:', panelId)
+      } else {
+        console.log('❌ Ошибка загрузки:', response.error)
+        panel.error = response.error || 'Ошибка загрузки контента'
+        panel.content = ''
+      }
+    } catch (err) {
+      console.error('❌ EditorController: Ошибка при загрузке markdown:', err)
+      panel.error = 'Ошибка при загрузке файла'
+      panel.content = ''
+    } finally {
+      panel.loading = false
+      console.log('🏁 EditorController: Загрузка завершена для панели:', panelId)
+    }
+  }
+
+  // Обновление контента панели
+  const updatePanelContent = (panelId: 'left' | 'right', content: string) => {
+    const panel = panelId === 'left' ? leftPanel.value : rightPanel.value
+    panel.content = content
+  }
+
   // Методы управления панелями
   const setActivePanel = (panelId: 'left' | 'right') => {
     // Проверяем, что панель доступна
@@ -157,10 +215,8 @@ export const useEditorController = defineStore('editorController', () => {
   const setPanelMode = (panelId: 'left' | 'right', mode: 'edit' | 'preview') => {
     if (panelId === 'left') {
       leftPanel.value.mode = mode
-      leftPanel.value.title = mode
     } else {
       rightPanel.value.mode = mode
-      rightPanel.value.title = mode
     }
   }
 
@@ -173,25 +229,42 @@ export const useEditorController = defineStore('editorController', () => {
   }
 
   const setPanelFile = (panelId: 'left' | 'right', filePath: string | null) => {
+    console.log('🔧 setPanelFile вызван:', { panelId, filePath })
+    
     if (panelId === 'left') {
+      console.log('📝 Устанавливаем файл в левую панель:', filePath)
       leftPanel.value.currentFile = filePath
+      // Загружаем контент если файл установлен
+      if (filePath) {
+        loadMarkdownContent('left', filePath, leftPanel.value.locale)
+      }
     } else {
+      console.log('📝 Устанавливаем файл в правую панель:', filePath)
       rightPanel.value.currentFile = filePath
+      // Загружаем контент если файл установлен
+      if (filePath) {
+        loadMarkdownContent('right', filePath, rightPanel.value.locale)
+      }
     }
+    
+    console.log('📊 Состояние панелей после setPanelFile:')
+    console.log('   Левая панель:', leftPanel.value.currentFile)
+    console.log('   Правая панель:', rightPanel.value.currentFile)
   }
 
   // Установка файла в активную панель
   const setActivePanelFile = (filePath: string | null) => {
+    console.log('🎯 setActivePanelFile вызван:', { filePath, activePanel: activePanel.value })
     setPanelFile(activePanel.value, filePath)
   }
 
   const getPanelTitle = (panelId: 'left' | 'right'): string => {
     const panel = panelId === 'left' ? leftPanel.value : rightPanel.value
-    if (panel.currentFile) {
-      const fileName = panel.currentFile.split('/').pop() || panel.currentFile
-      return `${panel.title} - ${fileName}`
+    if (panel.currentFile && typeof panel.currentFile === 'string') {
+      // Показываем полный путь файла
+      return `${panel.mode} - ${panel.currentFile}`
     }
-    return panel.title
+    return panel.mode
   }
 
   // Получение уникальных файлов для рендера
@@ -239,6 +312,8 @@ export const useEditorController = defineStore('editorController', () => {
     setPanelFile,
     getPanelTitle,
     getUniqueFiles,
+    loadMarkdownContent,
+    updatePanelContent,
     
     // Структура контента
     structure,

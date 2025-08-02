@@ -19,12 +19,10 @@
         {{ $t('error.tryAgain') }}
       </UButton>
     </div>
-
     <!-- Content state -->
     <div v-else-if="page" class="prose prose-gray dark:prose-invert max-w-none">
       <ContentRenderer :value="page" />
     </div>
-
     <!-- Empty state -->
     <div v-else class="text-center py-8">
       <UIcon name="i-heroicons-document-text" class="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -35,6 +33,7 @@
         {{ $t('common.noContentDescription') }}
       </p>
     </div>
+    
   </div>
 </template>
 
@@ -61,20 +60,32 @@ const targetLocale = computed(() => props.locale || currentLocale.value)
 const { data: page, pending, error, refresh } = await useAsyncData(
   `markdown-${props.path}-${targetLocale.value}`,
   async () => {
+    console.log('🔍 MarkdownRenderer: Начинаем загрузку контента')
+    console.log('📁 Путь:', props.path)
+    console.log('🌍 Локаль:', targetLocale.value)
+    console.log('🎯 Fallback локаль:', props.fallbackLocale)
+    
     try {
       // Build collection name based on target locale
       const collection = (`content_${targetLocale.value}`) as keyof Collections
+      console.log('📚 Коллекция:', collection)
+      
       let content = await queryCollection(collection).path(props.path).first()
+      console.log('📄 Контент из основной локали:', content ? 'найден' : 'не найден')
 
       // Fallback to fallback locale if content is missing
       if (!content && targetLocale.value !== props.fallbackLocale) {
+        console.log('🔄 Пробуем fallback локаль:', props.fallbackLocale)
         const fallbackCollection = (`content_${props.fallbackLocale}`) as keyof Collections
         content = await queryCollection(fallbackCollection).path(props.path).first()
+        console.log('📄 Контент из fallback локали:', content ? 'найден' : 'не найден')
       }
 
+      console.log('✅ MarkdownRenderer: Загрузка завершена')
+      console.log('📊 Результат:', content ? 'контент получен' : 'контент не найден')
       return content
     } catch (err) {
-      console.error('Error fetching markdown content:', err)
+      console.error('❌ MarkdownRenderer: Ошибка при загрузке контента:', err)
       return null
     }
   },

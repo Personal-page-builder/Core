@@ -97,12 +97,27 @@
             :title="getPanelTitle('left')"
             :mode="leftPanel.mode"
             :locale="leftPanel.locale"
+            :current-file="leftPanel.currentFile ? String(leftPanel.currentFile) : null"
             @mode-change="(mode) => setPanelMode('left', mode)"
             @locale-change="(locale) => setPanelLocale('left', locale)"
           />
           
           <div class="flex-1 overflow-y-auto">
-            <slot name="left" />
+            <!-- Режим редактирования -->
+            <MarkdownEditor
+              v-if="leftPanel.mode === 'edit'"
+              :content="leftPanel.content"
+              :loading="leftPanel.loading"
+              :error="leftPanel.error"
+              @content-change="(content) => updatePanelContent('left', content)"
+            />
+            
+            <!-- Режим предпросмотра -->
+            <MarkdownRenderer
+              v-else-if="leftPanel.mode === 'preview'"
+              :path="getContentPath(leftPanel.currentFile)"
+              :locale="leftPanel.locale"
+            />
           </div>
         </div>
 
@@ -125,12 +140,27 @@
             :title="getPanelTitle('right')"
             :mode="rightPanel.mode"
             :locale="rightPanel.locale"
+            :current-file="rightPanel.currentFile ? String(rightPanel.currentFile) : null"
             @mode-change="(mode) => setPanelMode('right', mode)"
             @locale-change="(locale) => setPanelLocale('right', locale)"
           />
           
           <div class="flex-1 overflow-y-auto">
-            <slot name="right" />
+            <!-- Режим редактирования -->
+            <MarkdownEditor
+              v-if="rightPanel.mode === 'edit'"
+              :content="rightPanel.content"
+              :loading="rightPanel.loading"
+              :error="rightPanel.error"
+              @content-change="(content) => updatePanelContent('right', content)"
+            />
+            
+            <!-- Режим предпросмотра -->
+            <MarkdownRenderer
+              v-else-if="rightPanel.mode === 'preview'"
+              :path="getContentPath(rightPanel.currentFile)"
+              :locale="rightPanel.locale"
+            />
           </div>
         </div>
       </div>
@@ -142,6 +172,8 @@
 import ContentTreeView from '~/component/content/TreeView.vue'
 import EditorController from '~/component/common/EditorController.vue'
 import PanelToolbar from '~/component/common/PanelToolbar.vue'
+import MarkdownEditor from '~/component/common/MarkdownEditor.vue'
+import MarkdownRenderer from '~/component/common/MarkdownRenderer.vue'
 import { useEditorController } from '~/store/EditorController'
 
 const editorController = useEditorController()
@@ -178,6 +210,19 @@ const setPanelMode = (panelId: 'left' | 'right', mode: 'edit' | 'preview') => ed
 const setPanelLocale = (panelId: 'left' | 'right', locale: string) => editorController.setPanelLocale(panelId, locale)
 const getPanelTitle = (panelId: 'left' | 'right') => editorController.getPanelTitle(panelId)
 const setActivePanel = (panelId: 'left' | 'right') => editorController.setActivePanel(panelId)
+const updatePanelContent = (panelId: 'left' | 'right', content: string) => editorController.updatePanelContent(panelId, content)
+
+// Функция для преобразования пути файла в путь для Nuxt Content
+const getContentPath = (filePath: string | null): string => {
+  if (!filePath) return ''
+  
+  // Убираем расширение .md и /index для Nuxt Content
+  let pathWithoutExt = filePath.replace(/\.md$/, '')
+  pathWithoutExt = pathWithoutExt.replace(/\/index$/, '')
+  
+  console.log('🔄 Преобразование пути:', filePath, '→', pathWithoutExt)
+  return pathWithoutExt
+}
 
 // Мобильные методы
 const setMobilePanel = (panel: 'navigation' | 'left' | 'right') => {

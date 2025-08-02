@@ -43,6 +43,7 @@ interface Props {
   title: string
   mode: 'edit' | 'preview'
   locale: string
+  currentFile?: string | null | object
 }
 
 const props = defineProps<Props>()
@@ -70,13 +71,23 @@ const availableLocales = computed(() => {
   }))
 })
 
-// Перевод заголовка панели на лету
+// Перевод заголовка панели на лету с именем файла
 const translatedTitle = computed(() => {
+  let baseTitle = ''
+  
   if (props.title === 'edit') {
-    return t('editor.panels.edit')
+    baseTitle = t('editor.panels.edit')
   } else if (props.title === 'preview') {
-    return t('editor.panels.preview')
+    baseTitle = t('editor.panels.preview')
+  } else {
+    baseTitle = props.title
   }
-  return props.title
+  
+  // Добавляем имя файла если оно есть
+  if (props.currentFile && typeof props.currentFile === 'string') {
+    return `${baseTitle}`
+  }
+  
+  return baseTitle
 })
 </script> 
