@@ -1,7 +1,11 @@
 ---
 title: "Welcome to Personal Page Builder"
 description: "Create and customize your personal page with ease"
-date: 2024-01-01
+date: 2025-08-02
+sitemap:
+  lastmod: 2025-08-02
+  changefreq: daily
+  priority: 1.0
 ---
 
 # Welcome to Personal Page Builder

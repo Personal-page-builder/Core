@@ -1,7 +1,11 @@
 ---
 title: "Портфолио"
 description: "Демонстрация моих проектов и работ"
-date: 2024-01-01
+date: 2025-08-02
+sitemap:
+  lastmod: 2025-08-02
+  changefreq: weekly
+  priority: 0.8
 ---
 
 # Портфолио

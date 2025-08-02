@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Disallow admin pages
+Disallow: /admin
+Disallow: /admin/*
+
+# Allow specific content types
+Allow: /cv
+Allow: /portfolio
+Allow: /blog
+Allow: /store
+
+# Sitemap
+Sitemap: http://localhost:3000/sitemap.xml 

@@ -16,5 +16,26 @@ export default {
     selectTitle: 'Select Language',
     selectDescription: 'Choose your preferred language',
     selectLanguage: 'Select Language'
+  },
+  error: {
+    tryAgain: 'Try Again',
+    goHome: 'Go Home',
+    goBack: 'Go Back',
+    teapotMessage: '🫖 I\'m a teapot! But that doesn\'t mean I can\'t help you find the page you need.',
+    pathInfo: 'Path: {path} in locale {locale}',
+    titles: {
+      404: 'Page Not Found',
+      418: 'I\'m a Teapot!',
+      403: 'Access Forbidden',
+      500: 'Internal Server Error',
+      default: 'Something went wrong'
+    },
+    messages: {
+      404: 'The page you are looking for does not exist or has been moved.',
+      418: 'The server refuses to brew coffee because it is a teapot.',
+      403: 'You do not have permission to access this page.',
+      500: 'An internal server error occurred. Please try again later.',
+      default: 'An unexpected error occurred. Please try refreshing the page.'
+    }
   }
 }

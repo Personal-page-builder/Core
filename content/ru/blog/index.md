@@ -1,7 +1,11 @@
 ---
 title: "Блог"
 description: "Последние статьи и идеи о веб-разработке"
-date: 2024-01-01
+date: 2025-08-02
+sitemap:
+  lastmod: 2025-08-02
+  changefreq: weekly
+  priority: 0.7
 ---
 
 # Блог
