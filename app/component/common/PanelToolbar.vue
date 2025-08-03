@@ -45,6 +45,8 @@
 </template>
 
 <script setup lang="ts">
+import { useEditorController } from '~/store/EditorController'
+
 interface Locale {
   code: string
   name: string
@@ -69,6 +71,7 @@ const emit = defineEmits<{
 }>()
 
 const { locales, t } = useI18n()
+const editorController = useEditorController()
 
 // Проверка что мы на клиенте
 const isClient = computed(() => typeof window !== 'undefined')
@@ -78,6 +81,19 @@ const selectedLocale = computed({
   set: (value) => {
     if (typeof value === 'string') {
       emit('localeChange', value)
+      
+      // Проверяем есть ли файл в localStorage для новой локали
+      if (props.currentFile && isClient.value) {
+        const fileKey = `${props.currentFile}_${value}`
+        const existingFile = editorController.modifiedFiles[fileKey]
+        
+        if (!existingFile) {
+          console.log('🔄 Файл не найден в localStorage для новой локали, загружаем с сервера')
+          // Определяем ID панели по контексту (можно передать как prop)
+          const panelId = props.title.includes('left') || props.mode === 'edit' ? 'left' : 'right'
+          editorController.loadMarkdownContent(panelId, props.currentFile, value)
+        }
+      }
     }
   }
 })

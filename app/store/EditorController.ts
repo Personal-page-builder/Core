@@ -91,12 +91,34 @@ export const useEditorController = defineStore('editorController', () => {
     loading.value = true
     error.value = null
     
+    const toast = useToast()
+    const toastResult = toast.add({
+      title: 'Загрузка структуры',
+      description: 'Загружается структура контента...',
+      color: 'info',
+      icon: 'i-lucide-loader-2'
+    })
+    
     try {
       const response = await $fetch<ContentStructure>('/api/content/structure')
       structure.value = response.data
+      
+      toast.update(toastResult.id, {
+        title: 'Структура загружена',
+        description: 'Структура контента успешно загружена',
+        color: 'success',
+        icon: 'i-lucide-check'
+      })
     } catch (err) {
       error.value = 'Ошибка при загрузке структуры контента'
       console.error('Ошибка загрузки структуры:', err)
+      
+      toast.update(toastResult.id, {
+        title: 'Ошибка загрузки',
+        description: 'Не удалось загрузить структуру контента',
+        color: 'error',
+        icon: 'i-lucide-x'
+      })
     } finally {
       loading.value = false
     }
@@ -170,6 +192,14 @@ export const useEditorController = defineStore('editorController', () => {
       return
     }
     
+    const toast = useToast()
+    const toastResult = toast.add({
+      title: 'Загрузка файла',
+      description: `Загружается ${filePath}...`,
+      color: 'info',
+      icon: 'i-lucide-loader-2'
+    })
+    
     panel.loading = true
     panel.error = null
     
@@ -198,14 +228,35 @@ export const useEditorController = defineStore('editorController', () => {
         }
         modifiedFiles.value[fileKey] = fileContent
         
+        toast.update(toastResult.id, {
+          title: 'Файл загружен',
+          description: `${filePath} успешно загружен`,
+          color: 'success',
+          icon: 'i-lucide-check'
+        })
+        
         console.log('💾 Контент сохранен в панель:', panelId)
       } else {
         console.log('❌ Ошибка загрузки:', response.error)
         panel.error = response.error || 'Ошибка загрузки контента'
+        
+        toast.update(toastResult.id, {
+          title: 'Ошибка загрузки',
+          description: response.error || 'Не удалось загрузить файл',
+          color: 'error',
+          icon: 'i-lucide-x'
+        })
       }
     } catch (err) {
       console.error('❌ EditorController: Ошибка при загрузке markdown:', err)
       panel.error = 'Ошибка при загрузке файла'
+      
+      toast.update(toastResult.id, {
+        title: 'Ошибка загрузки',
+        description: 'Произошла ошибка при загрузке файла',
+        color: 'error',
+        icon: 'i-lucide-x'
+      })
     } finally {
       panel.loading = false
       console.log('🏁 EditorController: Загрузка завершена для панели:', panelId)
@@ -277,6 +328,14 @@ export const useEditorController = defineStore('editorController', () => {
   }
 
   const saveFile = async (fileContent: FileContent) => {
+    const toast = useToast()
+    const toastResult = toast.add({
+      title: 'Сохранение файла',
+      description: 'Файл обрабатывается...',
+      color: 'info',
+      icon: 'i-lucide-loader-2'
+    })
+    
     try {
       const response = await $fetch<{ success: boolean }>('/api/content/markdown', {
         method: 'PUT',
@@ -287,15 +346,60 @@ export const useEditorController = defineStore('editorController', () => {
         }
       })
       
-      return response.success
+      if (response.success) {
+        toast.update(toastResult.id, {
+          title: 'Файл сохранен',
+          description: 'Файл успешно сохранен',
+          color: 'success',
+          icon: 'i-lucide-check'
+        })
+        return true
+      } else {
+        toast.update(toastResult.id, {
+          title: 'Ошибка сохранения',
+          description: 'Не удалось сохранить файл',
+          color: 'error',
+          icon: 'i-lucide-x'
+        })
+        return false
+      }
     } catch (err) {
       console.error('❌ Ошибка сохранения файла:', err)
+      toast.update(toastResult.id, {
+        title: 'Ошибка сохранения',
+        description: 'Произошла ошибка при сохранении файла',
+        color: 'error',
+        icon: 'i-lucide-x'
+      })
       return false
     }
   }
 
   const saveAllChanges = async () => {
     console.log('💾 Сохранение всех изменений...')
+    
+    const toast = useToast()
+    const modifiedFilesCount = Object.values(modifiedFiles.value).filter(file => file.isModified).length
+    
+    if (modifiedFilesCount === 0) {
+      toast.add({
+        title: 'Нет изменений',
+        description: 'Нет файлов для сохранения',
+        color: 'info',
+        icon: 'i-lucide-info'
+      })
+      return
+    }
+    
+    const toastResult = toast.add({
+      title: 'Сохранение изменений',
+      description: `Обрабатывается ${modifiedFilesCount} файл(ов)...`,
+      color: 'info',
+      icon: 'i-lucide-loader-2'
+    })
+    
+    let successCount = 0
+    let errorCount = 0
     
     for (const [fileKey, fileContent] of Object.entries(modifiedFiles.value)) {
       if (fileContent.isModified) {
@@ -306,12 +410,38 @@ export const useEditorController = defineStore('editorController', () => {
           fileContent.isModified = false
           fileContent.lastModified = Date.now()
           modifiedFiles.value[fileKey] = fileContent
+          successCount++
           
           console.log('✅ Файл сохранен:', fileKey)
         } else {
+          errorCount++
           console.log('❌ Ошибка сохранения файла:', fileKey)
         }
       }
+    }
+    
+    // Обновляем toast с результатом
+    if (errorCount === 0) {
+      toast.update(toastResult.id, {
+        title: 'Сохранение завершено',
+        description: `Успешно сохранено ${successCount} файл(ов)`,
+        color: 'success',
+        icon: 'i-lucide-check'
+      })
+    } else if (successCount === 0) {
+      toast.update(toastResult.id, {
+        title: 'Ошибка сохранения',
+        description: `Не удалось сохранить ${errorCount} файл(ов)`,
+        color: 'error',
+        icon: 'i-lucide-x'
+      })
+    } else {
+      toast.update(toastResult.id, {
+        title: 'Сохранение частично завершено',
+        description: `Сохранено ${successCount}, ошибок: ${errorCount}`,
+        color: 'warning',
+        icon: 'i-lucide-alert-triangle'
+      })
     }
     
     console.log('🏁 Сохранение завершено')
@@ -332,10 +462,58 @@ export const useEditorController = defineStore('editorController', () => {
   }
 
   const setPanelLocale = (panelId: 'left' | 'right', locale: string) => {
+    const toast = useToast()
+    
     if (panelId === 'left') {
       leftPanel.value.locale = locale
+      // Если есть текущий файл, проверяем есть ли он в localStorage для новой локали
+      if (leftPanel.value.currentFile) {
+        const fileKey = getFileKey(leftPanel.value.currentFile, locale)
+        const existingFile = modifiedFiles.value[fileKey]
+        
+        if (!existingFile) {
+          console.log('🔄 Смена языка в левой панели, загружаем файл для новой локали:', locale)
+          toast.add({
+            title: 'Смена языка',
+            description: `Загружается файл для локали ${locale}...`,
+            color: 'info',
+            icon: 'i-lucide-loader-2'
+          })
+          loadMarkdownContent('left', leftPanel.value.currentFile, locale)
+        } else {
+          toast.add({
+            title: 'Смена языка',
+            description: `Переключено на ${locale}`,
+            color: 'success',
+            icon: 'i-lucide-check'
+          })
+        }
+      }
     } else {
       rightPanel.value.locale = locale
+      // Если есть текущий файл, проверяем есть ли он в localStorage для новой локали
+      if (rightPanel.value.currentFile) {
+        const fileKey = getFileKey(rightPanel.value.currentFile, locale)
+        const existingFile = modifiedFiles.value[fileKey]
+        
+        if (!existingFile) {
+          console.log('🔄 Смена языка в правой панели, загружаем файл для новой локали:', locale)
+          toast.add({
+            title: 'Смена языка',
+            description: `Загружается файл для локали ${locale}...`,
+            color: 'info',
+            icon: 'i-lucide-loader-2'
+          })
+          loadMarkdownContent('right', rightPanel.value.currentFile, locale)
+        } else {
+          toast.add({
+            title: 'Смена языка',
+            description: `Переключено на ${locale}`,
+            color: 'success',
+            icon: 'i-lucide-check'
+          })
+        }
+      }
     }
   }
 
@@ -346,13 +524,31 @@ export const useEditorController = defineStore('editorController', () => {
       console.log('📝 Устанавливаем файл в левую панель:', filePath)
       leftPanel.value.currentFile = filePath
       if (filePath) {
-        loadMarkdownContent('left', filePath, leftPanel.value.locale)
+        // Проверяем есть ли файл в localStorage для текущей локали
+        const fileKey = getFileKey(filePath, leftPanel.value.locale)
+        const existingFile = modifiedFiles.value[fileKey]
+        
+        if (!existingFile) {
+          console.log('📄 Файл не найден в localStorage, загружаем с сервера')
+          loadMarkdownContent('left', filePath, leftPanel.value.locale)
+        } else {
+          console.log('📄 Файл найден в localStorage, используем сохраненный контент')
+        }
       }
     } else {
       console.log('📝 Устанавливаем файл в правую панель:', filePath)
       rightPanel.value.currentFile = filePath
       if (filePath) {
-        loadMarkdownContent('right', filePath, rightPanel.value.locale)
+        // Проверяем есть ли файл в localStorage для текущей локали
+        const fileKey = getFileKey(filePath, rightPanel.value.locale)
+        const existingFile = modifiedFiles.value[fileKey]
+        
+        if (!existingFile) {
+          console.log('📄 Файл не найден в localStorage, загружаем с сервера')
+          loadMarkdownContent('right', filePath, rightPanel.value.locale)
+        } else {
+          console.log('📄 Файл найден в localStorage, используем сохраненный контент')
+        }
       }
     }
     

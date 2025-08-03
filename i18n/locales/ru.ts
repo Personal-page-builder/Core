@@ -27,6 +27,9 @@ export default {
     settings: 'Настройки',
     currentFile: 'Текущий файл',
     noFileSelected: 'Файл не выбран',
+    save: 'Сохранить',
+    saveChanges: 'Сохранить изменения',
+    clearCache: 'Очистить кэш',
     preview: {
       show: 'Показать предпросмотр',
       hide: 'Скрыть предпросмотр',

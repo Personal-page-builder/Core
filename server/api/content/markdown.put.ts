@@ -53,11 +53,24 @@ export default defineEventHandler(async (event): Promise<MarkdownUpdateResponse>
     }
 
     // Строим полный путь к файлу
-    const contentPath = join(process.cwd(), 'content', locale, path)
-    console.log('📂 API: Полный путь к файлу:', contentPath)
+    // Проверяем, содержит ли путь уже локаль
+    const hasLocale = path.startsWith('en/') || path.startsWith('ru/')
+    let finalPath: string
+    
+    if (hasLocale) {
+      // Если путь уже содержит локаль, используем его как есть
+      finalPath = join(process.cwd(), 'content', path)
+      console.log('📂 API: Путь уже содержит локаль, используем как есть')
+    } else {
+      // Если локаль отсутствует, добавляем её
+      finalPath = join(process.cwd(), 'content', locale, path)
+      console.log('📂 API: Добавлена локаль к пути')
+    }
+    
+    console.log('📂 API: Полный путь к файлу:', finalPath)
     
     // Создаем директорию если не существует
-    const dir = dirname(contentPath)
+    const dir = dirname(finalPath)
     if (!existsSync(dir)) {
       console.log('📁 API: Создаем директорию:', dir)
       await mkdir(dir, { recursive: true })
@@ -65,7 +78,7 @@ export default defineEventHandler(async (event): Promise<MarkdownUpdateResponse>
 
     console.log('💾 API: Сохраняем файл...')
     // Записываем содержимое файла
-    await writeFile(contentPath, content, 'utf-8')
+    await writeFile(finalPath, content, 'utf-8')
     console.log('✅ API: Файл успешно сохранен')
 
     return {

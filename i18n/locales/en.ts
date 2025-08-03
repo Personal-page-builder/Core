@@ -27,6 +27,9 @@ export default {
     settings: 'Settings',
     currentFile: 'Current File',
     noFileSelected: 'No file selected',
+    save: 'Save',
+    saveChanges: 'Save Changes',
+    clearCache: 'Clear Cache',
     preview: {
       show: 'Show preview',
       hide: 'Hide preview',

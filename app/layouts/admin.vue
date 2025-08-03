@@ -7,7 +7,9 @@
       :style="{ width: navigationWidth + 'px' }"
     >
       <div class="p-4 space-y-4 flex-1 overflow-y-auto">
-        <EditorController />
+        <ClientOnly>
+          <EditorController />
+        </ClientOnly>
         <ContentTreeView />
       </div>
     </div>
@@ -15,7 +17,7 @@
     <!-- Разделитель навигации - скрыт на малых экранах -->
     <div 
       v-if="showNavigation && !isMobile"
-      class="w-1 cursor-col-resize hover:transition-colors"
+      class="w-1 bg-gray-500 cursor-col-resize hover:transition-colors"
       @mousedown="startResizeNavigation"
     />
 
@@ -69,131 +71,156 @@
         </div>
 
         <!-- Кнопка сохранения изменений -->
-        <UButton
-          v-if="hasUnsavedChanges && isClient"
-          color="primary"
-          variant="solid"
-          size="sm"
-          icon="i-lucide-save"
-          :title="t('editor.saveChanges')"
-          @click="saveAllChanges"
-        >
-          {{ t('editor.save') }}
-        </UButton>
+        <ClientOnly>
+          <UButton
+            v-if="hasUnsavedChanges && isClient"
+            color="primary"
+            variant="solid"
+            size="sm"
+            icon="i-lucide-save"
+            :title="t('editor.saveChanges')"
+            @click="saveAllChanges"
+          >
+            {{ t('editor.save') }}
+          </UButton>
+        </ClientOnly>
+
+        <!-- Кнопка очистки localStorage -->
+        <ClientOnly>
+          <UButton
+            v-if="isClient"
+            color="error"
+            variant="soft"
+            size="sm"
+            icon="i-lucide-trash-2"
+            :title="t('editor.clearCache')"
+            @click="clearLocalStorage"
+          >
+            {{ t('editor.clearCache') }}
+          </UButton>
+        </ClientOnly>
 
         <!-- Пустое место для выравнивания -->
         <div v-if="!isMobile && !hasUnsavedChanges"></div>
       </div>
 
       <!-- Контент панелей -->
-      <div class="flex-1 flex">
-        <!-- Навигация для мобильных -->
-        <div 
-          v-if="isMobile && currentMobilePanel === 'navigation'"
-          class="w-full"
-        >
-          <div class="p-4 space-y-4 flex-1 overflow-y-auto">
-            <EditorController />
-      <ContentTreeView />
+      <ClientOnly>
+        <div class="flex-1 flex">
+          <!-- Навигация для мобильных -->
+          <div 
+            v-if="isMobile && currentMobilePanel === 'navigation'"
+            class="w-full"
+          >
+            <div class="p-4 space-y-4 flex-1 overflow-y-auto">
+              <ClientOnly>
+                <EditorController />
+              </ClientOnly>
+              <ContentTreeView />
+            </div>
           </div>
-        </div>
 
-        <!-- Левая панель -->
-        <div 
-          v-if="(!isMobile) || (isMobile && currentMobilePanel === 'left')"
-          class="flex flex-col"
-          :class="{ 'border-primary border-2': activePanel === 'left' }"
-          :style="{ width: showDualLocale && !isMobile ? (splitRatio * 100) + '%' : '100%' }"
-          @click="setActivePanel('left')"
-        >
-          <PanelToolbar 
-            :title="getPanelTitle('left')"
-            :mode="leftPanel.mode"
-            :locale="leftPanel.locale"
-            :current-file="leftPanel.currentFile ? String(leftPanel.currentFile) : null"
-            :is-modified="isFileModified(leftPanel.currentFile || '', leftPanel.locale)"
-            @mode-change="(mode) => setPanelMode('left', mode)"
-            @locale-change="(locale) => setPanelLocale('left', locale)"
-            @revert-changes="() => revertFileChanges(leftPanel.currentFile || '', leftPanel.locale)"
+          <!-- Левая панель -->
+          <ClientOnly>
+            <div 
+              v-if="(!isMobile) || (isMobile && currentMobilePanel === 'left')"
+              class="flex flex-col"
+              :class="{ 'border-primary border-2': activePanel === 'left' }"
+              :style="{ width: showDualLocale && !isMobile ? (splitRatio * 100) + '%' : '100%' }"
+              @click="setActivePanel('left')"
+            >
+              <PanelToolbar 
+                :title="getPanelTitle('left')"
+                :mode="leftPanel.mode"
+                :locale="leftPanel.locale"
+                :current-file="leftPanel.currentFile ? String(leftPanel.currentFile) : null"
+                :is-modified="isFileModified(leftPanel.currentFile || '', leftPanel.locale)"
+                @mode-change="(mode) => setPanelMode('left', mode)"
+                @locale-change="(locale) => setPanelLocale('left', locale)"
+                @revert-changes="() => revertFileChanges(leftPanel.currentFile || '', leftPanel.locale)"
+              />
+              
+              <div class="flex-1 overflow-y-auto">
+                <!-- Режим редактирования -->
+                <MarkdownEditor
+                  class="h-full w-full"
+                  v-if="leftPanel.mode === 'edit'"
+                  :content="getPanelContent('left')"
+                  :loading="getPanelLoading('left')"
+                  :error="getPanelError('left')"
+                  :is-modified="isFileModified(leftPanel.currentFile || '', leftPanel.locale)"
+                  @content-change="(content) => updatePanelContent('left', content)"
+                  @revert-changes="() => revertFileChanges(leftPanel.currentFile || '', leftPanel.locale)"
+                />
+                
+                <!-- Режим предпросмотра -->
+                <!-- TODO: Make preview interactive on client side -->
+                <!--
+                <MarkdownRenderer
+                  v-else-if="leftPanel.mode === 'preview'"
+                  :path="leftPanel.currentFile || ''"
+                  :locale="leftPanel.locale"
+                  :create-page-object="createPageObject"
+                />
+                -->
+              </div>
+            </div>
+          </ClientOnly>
+
+          <!-- Разделитель сплита - только для десктопа -->
+          <div 
+            v-if="showDualLocale && !isMobile"
+            class="w-1 bg-gray-500 cursor-col-resize hover:transition-colors"
+            @mousedown="startResizeSplit"
           />
-          
-          <div class="flex-1 overflow-y-auto">
-            <!-- Режим редактирования -->
-            <MarkdownEditor
-              class="h-full w-full"
-              v-if="leftPanel.mode === 'edit'"
-              :content="getPanelContent('left')"
-              :loading="getPanelLoading('left')"
-              :error="getPanelError('left')"
-              :is-modified="isFileModified(leftPanel.currentFile || '', leftPanel.locale)"
-              @content-change="(content) => updatePanelContent('left', content)"
-              @revert-changes="() => revertFileChanges(leftPanel.currentFile || '', leftPanel.locale)"
-            />
-            
-            <!-- Режим предпросмотра -->
-            <!-- TODO: Make preview interactive on client side -->
-            <!--
-            <MarkdownRenderer
-              v-else-if="leftPanel.mode === 'preview'"
-              :path="leftPanel.currentFile || ''"
-              :locale="leftPanel.locale"
-              :create-page-object="createPageObject"
-            />
-            -->
-          </div>
-        </div>
 
-        <!-- Разделитель сплита - только для десктопа -->
-        <div 
-          v-if="showDualLocale && !isMobile"
-          class="w-1 cursor-col-resize hover:transition-colors"
-          @mousedown="startResizeSplit"
-        />
-
-        <!-- Правая панель -->
-        <div 
-          v-if="(showDualLocale && !isMobile) || (isMobile && currentMobilePanel === 'right')"
-          class="flex flex-col"
-          :class="{ 'border-primary border-2': activePanel === 'right' }"
-          :style="{ width: showDualLocale && !isMobile ? (1 - splitRatio) * 100 + '%' : '100%' }"
-          @click="setActivePanel('right')"
-        >
-          <PanelToolbar 
-            :title="getPanelTitle('right')"
-            :mode="rightPanel.mode"
-            :locale="rightPanel.locale"
-            :current-file="rightPanel.currentFile ? String(rightPanel.currentFile) : null"
-            :is-modified="isFileModified(rightPanel.currentFile || '', rightPanel.locale)"
-            @mode-change="(mode) => setPanelMode('right', mode)"
-            @locale-change="(locale) => setPanelLocale('right', locale)"
-            @revert-changes="() => revertFileChanges(rightPanel.currentFile || '', rightPanel.locale)"
-          />
-          
-          <div class="flex-1 overflow-y-auto">
-            <!-- Режим редактирования -->
-            <MarkdownEditor
-              v-if="rightPanel.mode === 'edit'"
-              :content="getPanelContent('right')"
-              :loading="getPanelLoading('right')"
-              :error="getPanelError('right')"
-              :is-modified="isFileModified(rightPanel.currentFile || '', rightPanel.locale)"
-              @content-change="(content) => updatePanelContent('right', content)"
-              @revert-changes="() => revertFileChanges(rightPanel.currentFile || '', rightPanel.locale)"
-            />
-            
-            <!-- Режим предпросмотра -->
-            <!-- TODO: Make preview interactive on client side -->
-            <!--
-            <MarkdownRenderer
-              v-else-if="rightPanel.mode === 'preview'"
-              :path="rightPanel.currentFile || ''"
-              :locale="rightPanel.locale"
-              :create-page-object="createPageObject"
-            />
-            -->
-          </div>
+          <!-- Правая панель -->
+          <ClientOnly>
+            <div 
+              v-if="(showDualLocale && !isMobile) || (isMobile && currentMobilePanel === 'right')"
+              class="flex flex-col"
+              :class="{ 'border-primary border-2': activePanel === 'right' }"
+              :style="{ width: showDualLocale && !isMobile ? (1 - splitRatio) * 100 + '%' : '100%' }"
+              @click="setActivePanel('right')"
+            >
+              <PanelToolbar 
+                :title="getPanelTitle('right')"
+                :mode="rightPanel.mode"
+                :locale="rightPanel.locale"
+                :current-file="rightPanel.currentFile ? String(rightPanel.currentFile) : null"
+                :is-modified="isFileModified(rightPanel.currentFile || '', rightPanel.locale)"
+                @mode-change="(mode) => setPanelMode('right', mode)"
+                @locale-change="(locale) => setPanelLocale('right', locale)"
+                @revert-changes="() => revertFileChanges(rightPanel.currentFile || '', rightPanel.locale)"
+              />
+              
+              <div class="flex-1 overflow-y-auto">
+                <!-- Режим редактирования -->
+                <MarkdownEditor
+                  v-if="rightPanel.mode === 'edit'"
+                  :content="getPanelContent('right')"
+                  :loading="getPanelLoading('right')"
+                  :error="getPanelError('right')"
+                  :is-modified="isFileModified(rightPanel.currentFile || '', rightPanel.locale)"
+                  @content-change="(content) => updatePanelContent('right', content)"
+                  @revert-changes="() => revertFileChanges(rightPanel.currentFile || '', rightPanel.locale)"
+                />
+                
+                <!-- Режим предпросмотра -->
+                <!-- TODO: Make preview interactive on client side -->
+                <!--
+                <MarkdownRenderer
+                  v-else-if="rightPanel.mode === 'preview'"
+                  :path="rightPanel.currentFile || ''"
+                  :locale="rightPanel.locale"
+                  :create-page-object="createPageObject"
+                />
+                -->
+              </div>
+            </div>
+          </ClientOnly>
         </div>
-      </div>
+      </ClientOnly>
     </div>
   </div>
 </template>
@@ -258,6 +285,43 @@ const revertFileChanges = (filePath: string, locale: string) => editorController
 const getPanelContent = (panelId: 'left' | 'right') => editorController.getPanelContent(panelId)
 const getPanelLoading = (panelId: 'left' | 'right') => editorController.getPanelLoading(panelId)
 const getPanelError = (panelId: 'left' | 'right') => editorController.getPanelError(panelId)
+
+// Функция очистки localStorage
+const clearLocalStorage = () => {
+  const toast = useToast()
+  const toastResult = toast.add({
+    title: 'Очистка кэша',
+    description: 'Очищается localStorage...',
+    color: 'info',
+    icon: 'i-lucide-loader-2'
+  })
+  
+  try {
+    // Очищаем localStorage
+    localStorage.clear()
+    
+    toast.update(toastResult.id, {
+      title: 'Кэш очищен',
+      description: 'localStorage очищен, перезагружаем страницу...',
+      color: 'success',
+      icon: 'i-lucide-check'
+    })
+    
+    // Перезагружаем страницу через небольшую задержку
+    setTimeout(() => {
+      window.location.reload()
+    }, 1000)
+    
+  } catch (error) {
+    console.error('Ошибка при очистке localStorage:', error)
+    toast.update(toastResult.id, {
+      title: 'Ошибка очистки',
+      description: 'Не удалось очистить localStorage',
+      color: 'error',
+      icon: 'i-lucide-x'
+    })
+  }
+}
 // TODO: Make preview interactive on client side
 // const createPageObject = (filePath: string, locale: string) => editorController.createPageObject(filePath, locale)
 

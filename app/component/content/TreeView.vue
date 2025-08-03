@@ -50,12 +50,14 @@
       
     </div>
     
-    <UTree
-      class="pt-8"
-      :items="treeItems"
-      v-model="selectedFile"
-      @update:model-value="handleFileSelect"
-    />
+    <ClientOnly>
+      <UTree
+        class="pt-8"
+        :items="treeItems"
+        v-model="selectedFile"
+        @update:model-value="handleFileSelect"
+      />
+    </ClientOnly>
     
     <!-- Модальное окно создания файла -->
     

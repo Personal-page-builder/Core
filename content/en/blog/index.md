@@ -8,7 +8,7 @@ sitemap:
   priority: 0.7
 ---
 
-# Blog
+# Blogs
 
 ## Latest Articles
 
