@@ -120,6 +120,7 @@
           <div class="flex-1 overflow-y-auto">
             <!-- Режим редактирования -->
             <MarkdownEditor
+              class="h-full w-full"
               v-if="leftPanel.mode === 'edit'"
               :content="getPanelContent('left')"
               :loading="getPanelLoading('left')"

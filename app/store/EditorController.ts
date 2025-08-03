@@ -241,13 +241,25 @@ export const useEditorController = defineStore('editorController', () => {
   }
 
   const getFileKey = (filePath: string, locale: string): string => {
-    return `${filePath}_${locale}`
+    const fileKey = `${filePath}_${locale}`
+    console.log('🔑 getFileKey:', { filePath, locale, fileKey })
+    return fileKey
   }
 
   const isFileModified = (filePath: string, locale: string): boolean => {
     const fileKey = getFileKey(filePath, locale)
     const fileContent = modifiedFiles.value[fileKey]
-    return fileContent?.isModified || false
+    const isModified = fileContent?.isModified || false
+    
+    console.log('🔍 isFileModified:', {
+      filePath,
+      locale,
+      fileKey,
+      fileContent: fileContent ? 'exists' : 'not found',
+      isModified
+    })
+    
+    return isModified
   }
 
   const revertFileChanges = (filePath: string, locale: string) => {
@@ -479,5 +491,5 @@ export const useEditorController = defineStore('editorController', () => {
     createPageObject
   }
 }, {
-  persist: false
+  persist: true
 }) 

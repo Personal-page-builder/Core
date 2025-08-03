@@ -38,22 +38,35 @@ export default defineEventHandler(async (event): Promise<MarkdownResponse> => {
     }
 
     // Строим полный путь к файлу
-    const contentPath = join(process.cwd(), 'content', locale, path)
-    console.log('📂 API: Полный путь к файлу:', contentPath)
+    // Проверяем, содержит ли путь уже локаль
+    const hasLocale = path.startsWith('en/') || path.startsWith('ru/')
+    let finalPath: string
+    
+    if (hasLocale) {
+      // Если путь уже содержит локаль, используем его как есть
+      finalPath = join(process.cwd(), 'content', path)
+      console.log('📂 API: Путь уже содержит локаль, используем как есть')
+    } else {
+      // Если локаль отсутствует, добавляем её
+      finalPath = join(process.cwd(), 'content', locale, path)
+      console.log('📂 API: Добавлена локаль к пути')
+    }
+    
+    console.log('📂 API: Полный путь к файлу:', finalPath)
     
     // Проверяем существование файла
-    if (!existsSync(contentPath)) {
-      console.log('❌ API: Файл не найден:', contentPath)
+    if (!existsSync(finalPath)) {
+      console.log('❌ API: Файл не найден:', finalPath)
       return {
         success: false,
-        error: `Файл не найден: ${contentPath}`
+        error: `Файл не найден: ${finalPath}`
       }
     }
 
     // Проверяем что это файл, а не папка
-    const stats = await stat(contentPath)
+    const stats = await stat(finalPath)
     if (!stats.isFile()) {
-      console.log('❌ API: Путь ведет к папке, а не к файлу:', contentPath)
+      console.log('❌ API: Путь ведет к папке, а не к файлу:', finalPath)
       return {
         success: false,
         error: `Путь ведет к папке: ${path}`
@@ -62,7 +75,7 @@ export default defineEventHandler(async (event): Promise<MarkdownResponse> => {
 
     console.log('✅ API: Файл найден, читаем содержимое...')
     // Читаем содержимое файла
-    const content = await readFile(contentPath, 'utf-8')
+    const content = await readFile(finalPath, 'utf-8')
     console.log('📄 API: Контент прочитан, длина:', content.length)
 
     return {

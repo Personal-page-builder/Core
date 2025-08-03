@@ -91,11 +91,6 @@ const availableLocales = computed(() => {
 
 // Перевод заголовка панели на лету с именем файла
 const translatedTitle = computed(() => {
-  // Проверяем что мы на клиенте для избежания проблем с гидратацией
-  if (!isClient.value) {
-    return props.title
-  }
-  
   let baseTitle = ''
   
   if (props.title === 'edit') {
