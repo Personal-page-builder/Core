@@ -25,7 +25,7 @@ export default defineNuxtConfig({
     database: {
       type: process.env.DATABASE_TYPE || 'sqlite',
       sqlite: {
-        filename: process.env.SQLITE_FILENAME || '.data/content.db'
+        filename: process.env.SQLITE_FILENAME || '.data/app.db'
       },
       postgres: {
         url: process.env.POSTGRES_URL,
@@ -89,6 +89,19 @@ export default defineNuxtConfig({
       author: process.env.SITE_AUTHOR || 'Nik Bulygin',
       twitterCreator: process.env.SITE_TWITTER_CREATOR || '@NikBulygin',
       ogLocale: process.env.SITE_OG_LOCALE || 'ru_RU'
+    },
+
+    // Analytics configuration
+    analytics: {
+      google: {
+        id: process.env.GOOGLE_ANALYTICS_ID,
+        debug: process.env.GOOGLE_ANALYTICS_DEBUG === 'true'
+      },
+      yandex: {
+        id: process.env.YANDEX_METRIKA_ID,
+        webvisor: process.env.YANDEX_METRIKA_WEBVISOR === 'true',
+        hash: process.env.YANDEX_METRIKA_HASH === 'true'
+      }
     }
   },
 
@@ -113,7 +126,7 @@ export default defineNuxtConfig({
       url: process.env.POSTGRES_URL
     } : {
       type: 'sqlite' as const,
-      filename: process.env.SQLITE_FILENAME || '.data/content.db'
+      filename: process.env.SQLITE_FILENAME || '.data/app.db'
     },
 
     build: {

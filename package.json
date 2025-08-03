@@ -19,15 +19,24 @@
     "@types/archiver": "^6.0.3",
     "@types/unzipper": "^0.10.11",
     "archiver": "^7.0.1",
+    "better-sqlite3": "^12.2.0",
+    "d3": "^7.9.0",
+    "drizzle-orm": "^0.44.4",
     "eslint": "^9.0.0",
     "jszip": "^3.10.1",
     "nuxt": "^4.0.1",
     "pinia": "^3.0.3",
     "pinia-plugin-persistedstate": "^4.4.1",
+    "postgres": "^3.4.7",
     "sharp": "^0.34.3",
     "typescript": "^5.6.3",
     "unzipper": "^0.12.3",
     "vue": "^3.5.18",
     "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/d3": "^7.4.3",
+    "drizzle-kit": "^0.31.4"
   }
 }

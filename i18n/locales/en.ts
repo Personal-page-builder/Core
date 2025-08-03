@@ -176,6 +176,79 @@ export default {
     }
   },
   admin: {
+    analytics: {
+      title: 'Analytics',
+      description: 'Statistics of visits and user actions',
+      loading: 'Loading statistics...',
+      error: 'Error loading statistics',
+      retry: 'Try again',
+      
+      // General statistics
+      generalStats: {
+        title: 'General Statistics',
+        uniqueVisitors: 'Unique Visitors',
+        totalActions: 'Total Actions',
+        actionTypes: 'Action Types'
+      },
+      
+      // Detailed visit statistics
+      detailedVisits: {
+        title: 'Detailed Visit Statistics',
+        period: 'Analysis Period',
+        periodDescription: 'Last 30 days',
+        daysWithData: 'days with data',
+        averageDaily: 'Average visits per day',
+        maxDaily: 'Maximum per day',
+        totalVisits: 'Total visits',
+        topDays: 'Top days by visits'
+      },
+      
+      // Charts
+      charts: {
+        visitsTitle: 'Visits by Day',
+        actionsTitle: 'Statistics by Action Types',
+        visitsYAxis: 'Number of visits',
+        actionsYAxis: 'Number of actions'
+      },
+      
+      // Action statistics
+      actionStats: {
+        title: 'Action Statistics',
+        pageViews: 'Page Views',
+        imageLoads: 'Image Loads',
+        buttonClicks: 'Button Clicks',
+        linkClicks: 'Link Clicks'
+      },
+      
+      // Top lists
+      topLists: {
+        pages: {
+          title: 'Top Pages by Views',
+          views: 'views'
+        },
+        images: {
+          title: 'Top Images',
+          loads: 'loads'
+        },
+        buttons: {
+          title: 'Top Buttons by Clicks',
+          clicks: 'clicks'
+        },
+        links: {
+          title: 'Top Links by Clicks',
+          clicks: 'clicks'
+        }
+      },
+      
+      // Formatting
+      formatting: {
+        visits: 'visits',
+        actions: 'actions',
+        views: 'views',
+        loads: 'loads',
+        clicks: 'clicks'
+      }
+    },
     gallery: {
       title: 'Gallery Management',
       description: 'Manage your image gallery with advanced tools',

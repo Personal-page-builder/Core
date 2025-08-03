@@ -4,6 +4,7 @@
       <NuxtPage />
     </NuxtLayout>
     <GlobalImageUploader />
+    <GlobalAnalytics />
   </UApp>
 </template>
 
