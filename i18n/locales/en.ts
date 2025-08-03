@@ -130,6 +130,102 @@ export default {
       importedCount: 'Imported {count} files'
     }
   },
+  gallery: {
+    title: 'Image Gallery',
+    description: 'Upload and manage your images',
+    loading: 'Loading images...',
+    loadError: 'Failed to load images',
+    retry: 'Try again',
+    empty: {
+      title: 'No images yet',
+      description: 'Upload your first image to get started'
+    },
+    upload: {
+      title: 'Upload Image',
+      description: 'Drag and drop images here, or click to select files. You can also paste images from clipboard.',
+      selectFile: 'Select files',
+      uploading: 'Uploading...',
+      dropHere: 'Drop images here to upload',
+      success: 'Image uploaded successfully',
+      successDescription: 'Your image has been uploaded and processed',
+      error: 'Upload failed',
+      errorDescription: 'Failed to upload image'
+    },
+    crop: {
+      title: 'Crop Image',
+      apply: 'Apply',
+      cancel: 'Cancel',
+      reset: 'Reset',
+      size: 'Crop area size'
+    },
+    actions: {
+      view: 'View full size',
+      copy: 'Copy link',
+      delete: 'Delete image'
+    },
+    copy: {
+      success: 'Link copied',
+      description: 'Image link copied to clipboard',
+      error: 'Copy failed',
+      errorDescription: 'Failed to copy link'
+    },
+    info: {
+      size: 'File size',
+      dimensions: 'Dimensions',
+      uploaded: 'Uploaded'
+    }
+  },
+  admin: {
+    gallery: {
+      title: 'Gallery Management',
+      description: 'Manage your image gallery with advanced tools',
+      loading: 'Loading gallery...',
+      loadError: 'Failed to load gallery',
+      retry: 'Try again',
+      empty: {
+        title: 'Gallery is empty',
+        description: 'Start by uploading some images'
+      },
+      upload: {
+        title: 'Upload Images',
+        uploading: 'Uploading images...',
+        success: 'Images uploaded successfully',
+        successDescription: 'Your images have been uploaded and processed',
+        error: 'Upload failed',
+        errorDescription: 'Failed to upload images'
+      },
+      delete: {
+        title: 'Delete Image',
+        deleting: 'Deleting image...',
+        success: 'Image deleted successfully',
+        successDescription: 'Image has been removed from gallery',
+        error: 'Delete failed',
+        errorDescription: 'Failed to delete image'
+      },
+      clear: {
+        title: 'Clear Gallery',
+        clearing: 'Clearing gallery...',
+        success: 'Gallery cleared successfully',
+        successDescription: 'All images have been removed',
+        error: 'Clear failed',
+        errorDescription: 'Failed to clear gallery',
+        confirm: 'Are you sure you want to clear the entire gallery? This action cannot be undone.'
+      },
+      stats: {
+        total: 'Total Images',
+        size: 'Total Size',
+        today: 'Today\'s Uploads',
+        average: 'Average Size'
+      },
+      grid: {
+        title: 'Gallery Images'
+      },
+      actions: {
+        export: 'Export Gallery',
+        clear: 'Clear Gallery'
+      }
+    }
+  },
   common: {
     loading: 'Loading...',
     noContent: 'No content found',

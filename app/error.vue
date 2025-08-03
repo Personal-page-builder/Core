@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+  <div class="min-h-screen flex items-center justify-center">
     <div class="max-w-md mx-auto text-center px-4">
       <!-- Error Icon -->
       <div class="mb-8">
