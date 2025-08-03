@@ -8,21 +8,18 @@
       </template>
 
       <div class="space-y-4">
-        <!-- Переключатели -->
         <div class="space-y-2">
           <h4 class="font-medium text-sm">{{ t('editor.settings') }}</h4>
           <div class="flex items-center gap-2">
-            <!-- Переключатель темы -->
+            
             <UTooltip :text="isDark ? t('editor.theme.light') : t('editor.theme.dark')">
               <ThemeSwitcher />
             </UTooltip>
 
-            <!-- Переключатель языка -->
             <UTooltip :text="t('language.selectLanguage')">
               <LanguageSwitcher />
             </UTooltip>
 
-            <!-- Сплит экрана -->
             <UTooltip :text="showDualLocale ? t('editor.split.disable') : t('editor.split.enable')">
               <UButton
                 :color="showDualLocale ? 'primary' : 'neutral'"

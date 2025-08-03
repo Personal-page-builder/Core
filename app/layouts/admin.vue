@@ -1,6 +1,5 @@
 <template>
   <div class="flex h-screen">
-    <!-- Навигация - скрыта на малых экранах -->
     <div 
       v-show="showNavigation && !isMobile"
       class="flex flex-col"
@@ -14,18 +13,16 @@
       </div>
     </div>
 
-    <!-- Разделитель навигации - скрыт на малых экранах -->
     <div 
       v-if="showNavigation && !isMobile"
-      class="w-1 bg-gray-500 cursor-col-resize hover:transition-colors"
+      class="w-1 bg-neutral-200 dark:bg-neutral-800 cursor-col-resize hover:transition-colors"
       @mousedown="startResizeNavigation"
     />
 
-    <!-- Основной контент -->
     <div class="flex-1 flex flex-col">
-      <!-- Верхняя панель с кнопками -->
+
       <div class="p-4 border-b flex items-center justify-between">
-        <!-- Кнопка навигации для десктопа -->
+
         <UButton 
           v-if="!isMobile"
           :icon="showNavigation ? 'i-lucide-chevron-left' : 'i-lucide-chevron-right'"
@@ -36,7 +33,6 @@
           @click="toggleNavigation"
         />
         
-        <!-- Переключатель панелей для мобильных -->
         <div v-if="isMobile" class="flex items-center gap-1">
           <UButton
             :color="currentMobilePanel === 'navigation' ? 'primary' : 'neutral'"
@@ -46,6 +42,7 @@
             :title="t('navigation.title')"
             @click="setMobilePanel('navigation')"
           />
+
           <UButton
             :color="currentMobilePanel === 'left' ? 'primary' : 'neutral'"
             variant="soft"
@@ -54,6 +51,7 @@
             :title="t('editor.panels.left')"
             @click="setMobilePanel('left')"
           />
+
           <UButton
             v-if="showDualLocale"
             :color="currentMobilePanel === 'right' ? 'primary' : 'neutral'"
@@ -65,12 +63,10 @@
           />
         </div>
 
-        <!-- Заголовок текущей панели для мобильных -->
         <div v-if="isMobile" class="text-sm font-medium">
           {{ getMobilePanelTitle() }}
         </div>
 
-        <!-- Кнопка сохранения изменений -->
         <ClientOnly>
           <UButton
             v-if="hasUnsavedChanges && isClient"
@@ -85,7 +81,6 @@
           </UButton>
         </ClientOnly>
 
-        <!-- Кнопка очистки localStorage -->
         <ClientOnly>
           <UButton
             v-if="isClient"
@@ -100,14 +95,11 @@
           </UButton>
         </ClientOnly>
 
-        <!-- Пустое место для выравнивания -->
         <div v-if="!isMobile && !hasUnsavedChanges"></div>
       </div>
 
-      <!-- Контент панелей -->
       <ClientOnly>
         <div class="flex-1 flex">
-          <!-- Навигация для мобильных -->
           <div 
             v-if="isMobile && currentMobilePanel === 'navigation'"
             class="w-full"
@@ -120,7 +112,6 @@
             </div>
           </div>
 
-          <!-- Левая панель -->
           <ClientOnly>
             <div 
               v-if="(!isMobile) || (isMobile && currentMobilePanel === 'left')"
@@ -141,7 +132,6 @@
               />
               
               <div class="flex-1 overflow-y-auto">
-                <!-- Режим редактирования -->
                 <MarkdownEditor
                   class="h-full w-full"
                   v-if="leftPanel.mode === 'edit'"
@@ -153,7 +143,6 @@
                   @revert-changes="() => revertFileChanges(leftPanel.currentFile || '', leftPanel.locale)"
                 />
                 
-                <!-- Режим предпросмотра -->
                 <!-- TODO: Make preview interactive on client side -->
                 <!--
                 <MarkdownRenderer
@@ -167,14 +156,12 @@
             </div>
           </ClientOnly>
 
-          <!-- Разделитель сплита - только для десктопа -->
           <div 
             v-if="showDualLocale && !isMobile"
-            class="w-1 bg-gray-500 cursor-col-resize hover:transition-colors"
+            class="w-1 bg-neutral-200 dark:bg-neutral-800 cursor-col-resize hover:transition-colors"
             @mousedown="startResizeSplit"
           />
 
-          <!-- Правая панель -->
           <ClientOnly>
             <div 
               v-if="(showDualLocale && !isMobile) || (isMobile && currentMobilePanel === 'right')"
@@ -195,7 +182,6 @@
               />
               
               <div class="flex-1 overflow-y-auto">
-                <!-- Режим редактирования -->
                 <MarkdownEditor
                   v-if="rightPanel.mode === 'edit'"
                   :content="getPanelContent('right')"
@@ -206,7 +192,6 @@
                   @revert-changes="() => revertFileChanges(rightPanel.currentFile || '', rightPanel.locale)"
                 />
                 
-                <!-- Режим предпросмотра -->
                 <!-- TODO: Make preview interactive on client side -->
                 <!--
                 <MarkdownRenderer
@@ -237,7 +222,6 @@ import { useEditorController } from '~/store/EditorController'
 const editorController = useEditorController()
 const { t } = useI18n()
 
-// Проверка что мы на клиенте
 const isClient = computed(() => typeof window !== 'undefined')
 
 const showNavigation = computed(() => editorController.showNavigation)
@@ -246,11 +230,9 @@ const leftPanel = computed(() => editorController.leftPanel)
 const rightPanel = computed(() => editorController.rightPanel)
 const activePanel = computed(() => editorController.activePanel)
 
-// Адаптивность
 const isMobile = ref(false)
 const currentMobilePanel = ref<'navigation' | 'left' | 'right'>('left')
 
-// Проверка размера экрана
 const checkScreenSize = () => {
   isMobile.value = window.innerWidth < 768 // md breakpoint
   if (isMobile.value && currentMobilePanel.value === 'right' && !showDualLocale.value) {
@@ -258,11 +240,9 @@ const checkScreenSize = () => {
   }
 }
 
-// Размеры панелей
 const navigationWidth = ref(320)
 const splitRatio = ref(0.5)
 
-// Drag & Drop состояние
 const isResizingNavigation = ref(false)
 const isResizingSplit = ref(false)
 
@@ -286,28 +266,25 @@ const getPanelContent = (panelId: 'left' | 'right') => editorController.getPanel
 const getPanelLoading = (panelId: 'left' | 'right') => editorController.getPanelLoading(panelId)
 const getPanelError = (panelId: 'left' | 'right') => editorController.getPanelError(panelId)
 
-// Функция очистки localStorage
 const clearLocalStorage = () => {
   const toast = useToast()
   const toastResult = toast.add({
-    title: 'Очистка кэша',
-    description: 'Очищается localStorage...',
+    title: t('editor.clearCache'),
+    description: t('editor.clearCacheLoading'),
     color: 'info',
     icon: 'i-lucide-loader-2'
   })
   
   try {
-    // Очищаем localStorage
     localStorage.clear()
     
     toast.update(toastResult.id, {
-      title: 'Кэш очищен',
-      description: 'localStorage очищен, перезагружаем страницу...',
+      title: t('editor.clearCache'),
+      description: t('editor.clearCacheSuccess'),
       color: 'success',
       icon: 'i-lucide-check'
     })
     
-    // Перезагружаем страницу через небольшую задержку
     setTimeout(() => {
       window.location.reload()
     }, 1000)
@@ -315,8 +292,8 @@ const clearLocalStorage = () => {
   } catch (error) {
     console.error('Ошибка при очистке localStorage:', error)
     toast.update(toastResult.id, {
-      title: 'Ошибка очистки',
-      description: 'Не удалось очистить localStorage',
+      title: t('error.titles.default'),
+      description: t('editor.clearCacheError'),
       color: 'error',
       icon: 'i-lucide-x'
     })
@@ -325,7 +302,6 @@ const clearLocalStorage = () => {
 // TODO: Make preview interactive on client side
 // const createPageObject = (filePath: string, locale: string) => editorController.createPageObject(filePath, locale)
 
-// Мобильные методы
 const setMobilePanel = (panel: 'navigation' | 'left' | 'right') => {
   currentMobilePanel.value = panel
   if (panel === 'left') {
@@ -348,7 +324,6 @@ const getMobilePanelTitle = () => {
   }
 }
 
-// Обработчики resize
 const startResizeNavigation = (e: MouseEvent) => {
   isResizingNavigation.value = true
   document.addEventListener('mousemove', handleResizeNavigation)
@@ -393,10 +368,24 @@ const stopResizeSplit = () => {
   document.removeEventListener('mouseup', stopResizeSplit)
 }
 
-// Инициализация и очистка
 onMounted(() => {
   checkScreenSize()
   window.addEventListener('resize', checkScreenSize)
+  
+  const handleContextMenu = (e: Event) => {
+    e.preventDefault()
+    return false
+  }
+  
+  document.addEventListener('contextmenu', handleContextMenu)
+  
+  const cleanup = () => {
+    document.removeEventListener('contextmenu', handleContextMenu)
+  }
+  
+  onUnmounted(() => {
+    cleanup()
+  })
 })
 
 onUnmounted(() => {
@@ -407,15 +396,3 @@ onUnmounted(() => {
   document.removeEventListener('mouseup', stopResizeSplit)
 })
 </script> 
-
-<style scoped>
-/* Стили для курсора при resize */
-.cursor-col-resize {
-  cursor: col-resize;
-}
-
-/* Предотвращение выделения текста при drag */
-* {
-  user-select: none;
-}
-</style> 

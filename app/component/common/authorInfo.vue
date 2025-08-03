@@ -1,7 +1,13 @@
 <template>
   <div class="flex items-center gap-2">
-    <span class="text-sm text-gray-600 dark:text-gray-400">{{ t('layout.author.withLove') }}</span>
-    <span class="text-lg">❤️</span>
+    <span class="text-sm">{{ t('layout.author.withLove') }}</span>
+    <UIcon name="i-lucide-heart" class="text-lg text-red-500" />
+    <UButton
+      icon="i-logos-github-icon"
+      variant="ghost"
+      size="sm"
+      @click="openLink('https://github.com/Personal-page-builder/Core')"
+    />
     <UModal 
       :title="t('layout.author.contacts')"
       :description="t('layout.author.contactsDescription')"

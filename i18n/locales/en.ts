@@ -30,6 +30,9 @@ export default {
     save: 'Save',
     saveChanges: 'Save Changes',
     clearCache: 'Clear Cache',
+    clearCacheLoading: 'Clearing localStorage...',
+    clearCacheSuccess: 'Cache cleared, reloading page...',
+    clearCacheError: 'Failed to clear localStorage',
     preview: {
       show: 'Show preview',
       hide: 'Hide preview',
@@ -53,6 +56,78 @@ export default {
       right: 'Right',
       edit: 'Edit',
       preview: 'Preview'
+    }
+  },
+  treeView: {
+    loading: 'Loading...',
+    error: 'Error loading content structure',
+    createFile: {
+      title: 'Create new file',
+      description: 'Enter file name (only English letters, numbers, hyphens and underscores)',
+      placeholder: 'my-new-file.md or folder/',
+      create: 'Create',
+      fileNameRequired: 'File name is required',
+      invalidPath: 'Path must end with / (folder) or .md (file)',
+      invalidCharacters: 'Path can only contain English letters, numbers, hyphens, underscores and /',
+      fileExists: 'File or folder with this name already exists',
+      success: 'File created successfully',
+      error: 'Failed to create file'
+    },
+    rename: {
+      title: 'Rename {type}',
+      description: 'Enter new name for {type}',
+      newName: 'New name',
+      newNameRequired: 'New name is required',
+      rename: 'Rename',
+      cancel: 'Cancel',
+      fullPath: 'Full path',
+      type: 'Type',
+      folder: 'Folder',
+      file: 'File',
+      success: 'Item renamed successfully',
+      error: 'Failed to rename item'
+    },
+    delete: {
+      title: 'Delete {type}',
+      description: 'Are you sure you want to delete {type} "{name}"? This action cannot be undone.',
+      delete: 'Delete',
+      cancel: 'Cancel',
+      warning: '⚠️ Warning!',
+      folderWarning: 'This folder contains {count} file(s). When deleting a folder, all its contents will be permanently deleted.',
+      fullPath: 'Full path',
+      type: 'Type',
+      success: 'Item deleted successfully',
+      error: 'Failed to delete item'
+    },
+    actions: {
+      create: 'Create new file',
+      rename: 'Rename',
+      delete: 'Delete',
+      revertChanges: 'Revert changes',
+      export: 'Export',
+      import: 'Import'
+    },
+    status: {
+      left: 'L',
+      right: 'R',
+      modified: 'M'
+    },
+    export: {
+      title: 'Export Content',
+      description: 'Export all markdown files as a ZIP archive',
+      success: 'Content exported successfully',
+      error: 'Failed to export content',
+      downloading: 'Downloading archive...'
+    },
+    import: {
+      title: 'Import Content',
+      description: 'Import markdown files from ZIP archive. This will replace all existing content.',
+      warning: '⚠️ Warning! This action will replace all existing content.',
+      selectFile: 'Select ZIP file',
+      success: 'Content imported successfully',
+      error: 'Failed to import content',
+      uploading: 'Uploading and processing...',
+      importedCount: 'Imported {count} files'
     }
   },
   common: {

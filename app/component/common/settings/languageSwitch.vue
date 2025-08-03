@@ -7,11 +7,14 @@
     <UButton 
       :label="currentLanguageName" 
       variant="ghost" 
-      icon="i-heroicons-language"
+      icon="i-lucide-language"
     />
 
     <template #body>
-      <div class="flex flex-row flex-wrap gap-4 h-full w-full justify-center items-center overflow-y-auto p-4 flex-1">
+      <UContainer
+        class="flex flex-row flex-wrap gap-4 
+        h-full w-full justify-center items-center overflow-y-auto p-4 flex-1"
+        >
         <UButton
           v-for="locale in allLocales"
           :key="locale.code"
@@ -22,7 +25,7 @@
           class="justify-center text-center min-w-[250px] min-h-[80px] text-lg font-medium"
           @click="handleSetLocale(locale.code)"
         />
-      </div>
+      </UContainer>
     </template>
   </UModal>
 </template>
@@ -68,9 +71,6 @@ const getFlag = (code: string): string => {
 }
 
 const handleSetLocale = (localeCode: string) => {
-  // Проверяем, что локаль поддерживается
-  if (localeCode === 'en' || localeCode === 'ru') {
-    setLocale(localeCode as 'en' | 'ru')
-  }
+  setLocale(localeCode as i18nLocale)
 }
 </script>
